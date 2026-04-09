@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_user_wizard_form" model="ir.ui.view">
+        <field name="name">user.wizard.form</field>
+        <field name="model">user.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create User">
+                <sheet>
+
+                    <group>
+                        <field name="name"/>
+                        <field name="login"/>
+                    </group>
+                    <notebook>
+                        <page name="ACCESS RIGHTS">
+                            <group>
+                                <group string="Sales">
+                                    <field name="sales_groups_id" options='{"no_open": True, "no_create": True}'/>
+                                </group>
+                                <group string="Recruitment">
+                                    <field name="recruitment_groups_id" options='{"no_open": True, "no_create": True}'/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Time sheet">
+                                    <field name="timesheet_groups_id" options='{"no_open": True, "no_create": True}'/>
+                                </group>
+                                <group string="Time Off">
+                                    <field name="timeoff_groups_id" options='{"no_open": True, "no_create": True}'/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Attendances">
+                                    <field name="attendance_groups_id" options='{"no_open": True, "no_create": True}'/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button name="save_user" string="Create" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

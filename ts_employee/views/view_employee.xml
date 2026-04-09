@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_inherit_employee_form" model="ir.ui.view">
+        <field name="name">inherit employee form view</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button" position="after">
+                <button name="create_user" type="object" string="CREATE INTERNAL USER" class="oe_highlight"
+                        invisible="user_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

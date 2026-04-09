@@ -1,0 +1,130 @@
+body:has(.o_doc_preview_dialog) .o_main_navbar {
+    display: none !important;
+}
+
+.o_full_screen_preview {
+    background: transparent;
+    height: 100vh;
+    margin: 0;
+}
+
+.modal-dialog-centered::before {
+    display: none !important;
+}
+
+.modal-fullscreen .modal-content {
+    margin-top: 0 !important;
+    border: 0;
+    border-radius: 0;
+    height: 100vh;
+}
+
+.modal-dialog.modal-dialog-centered.modal-fullscreen {
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+}
+
+.o_preview_container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.o_doc_viewer {
+    width: 80%;
+    height: 100%;
+}
+
+.o_doc_viewer table {
+    width: 100%;
+}
+
+
+Dialog {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.o-main-components-container {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+}
+
+
+html, body {
+    height: 100vh;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+
+}
+
+.o-FileViewer {
+    padding: 0;
+    margin: 0;
+}
+
+.o-FileViewer-header {
+    padding: 0;
+    margin: 0;
+}
+
+.modal-header {
+    background-color: black;
+    height: 60px;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 60px;
+    padding: 0 20px;
+}
+
+.header h5 {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin: 0;
+    color: #e0e0e0;
+}
+
+.section-2 {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.download-btn.btn.btn-secondary {
+    border: none;
+    color: black;
+    padding: 2px 10px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.download-btn:hover {
+    border-color: #777;
+}
+
+.btn-close {
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
+}
+

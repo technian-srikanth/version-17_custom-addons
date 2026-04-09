@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_list_resoure_calendar_leaves" model="ir.ui.view">
+        <field name="name">resource calendar leaves inherit view</field>
+        <field name="model">resource.calendar.leaves</field>
+        <field name="inherit_id" ref="hr_holidays.resource_calendar_leaves_tree_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_to']" position="after">
+                <field name="flexible_hours"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
