@@ -128,3 +128,29 @@ html, body {
     line-height: 1;
 }
 
+.docx-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background: #e5e5e5;
+}
+
+section.docx {
+    width: 794px;
+    min-height: 1123px;
+    padding: 72px;
+    background: white;
+    margin-bottom: 40px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+
+}
+
+.docx-page-number {
+    position: absolute;
+    bottom: 20px;
+    right: 40px;
+    font-size: 12px;
+    color: #444;
+}

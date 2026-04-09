@@ -95,44 +95,78 @@ document.addEventListener("click", async function (ev) {
 
         viewer.innerHTML = "Loading preview...";
 
-        if (filename.endsWith(".csv") || filename.endsWith(".xlsx")) {
+        if (filename.endsWith(".xlsx") || filename.endsWith(".csv")) {
 
             const response = await fetch(`/csv/preview/${attachmentId}`);
             const data = await response.json();
 
-            let table = "<table class='table table-striped table-bordered bg-white'>";
+            console.log("data", data);
 
-            data.rows.forEach((row, index) => {
+            viewer.innerHTML = "";
+            viewer.style.height = "100%";
 
-                table += "<tr>";
+            const spreadsheet = x_spreadsheet(viewer, {
+                mode: "read",
+                showToolbar: false,
+                showGrid: true,
+                showContextmenu: false
+            });
+            const sheets = [];
 
-                row.forEach(cell => {
+            data.sheets.forEach(sheet => {
 
-                    table += index === 0
-                        ? `<th>${cell}</th>`
-                        : `<td>${cell}</td>`;
+                const sheetRows = {
+                    len: sheet.rows.length
+                };
+
+                sheet.rows.forEach((row, r) => {
+
+                    const cells = {};
+
+                    row.forEach((cell, c) => {
+                        cells[c] = {
+                            text: cell ? String(cell) : ""
+                        };
+                    });
+
+                    sheetRows[r] = {cells};
 
                 });
 
-                table += "</tr>";
+                sheets.push({
+                    name: sheet.name,
+                    rows: sheetRows
+                });
 
             });
 
-            table += "</table>";
+            spreadsheet.loadData(sheets);
 
-            viewer.innerHTML = table;
+            console.log("spreadsheet", spreadsheet);
+
         }
-
-
         /* DOCX */
 
         else if (filename.endsWith(".docx")) {
 
+            const viewer = document.getElementById("doc_viewer");
+
             const file = await fetch(fileUrl).then(r => r.arrayBuffer());
 
-            viewer.innerHTML = "";
+            viewer.innerHTML = `<div class="docx-wrapper"></div>`;
 
-            docx.renderAsync(file, viewer);
+            const container = viewer.querySelector(".docx-wrapper");
+
+            console.log('container', container)
+
+            await docx.renderAsync(file, container, null, {
+                className: "docx",
+                inWrapper: false,
+                ignoreWidth: true,
+                ignoreHeight: true
+            });
+
+            splitDocxPages(container);
 
         }
 
@@ -152,3 +186,56 @@ document.addEventListener("mouseover", function (ev) {
     }
 
 });
+
+function splitDocxPages(container) {
+
+    const PAGE_HEIGHT = 1123; // A4 height
+    const article = container.querySelector("article");
+
+    if (!article) return;
+
+    let page = container.querySelector("section.docx");
+    let currentHeight = 0;
+
+    const pages = [page];
+
+    [...article.children].forEach(node => {
+
+        const nodeHeight = node.offsetHeight;
+
+        if (currentHeight + nodeHeight > PAGE_HEIGHT) {
+
+            // create new page
+            const newPage = document.createElement("section");
+            newPage.className = "docx";
+
+            const newArticle = document.createElement("article");
+            newPage.appendChild(newArticle);
+
+            container.appendChild(newPage);
+
+            page = newPage;
+            pages.push(page);
+
+            currentHeight = 0;
+        }
+
+        page.querySelector("article").appendChild(node);
+        currentHeight += nodeHeight;
+
+    });
+
+    // Add page numbers
+    const totalPages = pages.length;
+
+    pages.forEach((page, index) => {
+
+        const footer = document.createElement("div");
+        footer.className = "docx-page-number";
+        footer.textContent = `Page ${index + 1} of ${totalPages}`;
+
+        page.appendChild(footer);
+
+    });
+
+}

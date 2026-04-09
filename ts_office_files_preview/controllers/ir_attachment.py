@@ -5,7 +5,6 @@ import csv
 import io
 import json
 import openpyxl
-# from pptx import Presentation
 
 
 class AttachmentPreviewController(http.Controller):
@@ -16,16 +15,15 @@ class AttachmentPreviewController(http.Controller):
         attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
 
         if not attachment.exists() or not attachment.datas:
-            return self._json_response({"rows": []})
+            return self._json_response({"sheets": []})
 
         file_data = base64.b64decode(attachment.datas)
         filename = attachment.name.lower()
 
-        rows = []
-
         try:
             file_input = io.BytesIO(file_data)
 
+            # XLSX Preview (Multiple Sheets)
             if filename.endswith(".xlsx"):
 
                 wb = openpyxl.load_workbook(
@@ -34,15 +32,34 @@ class AttachmentPreviewController(http.Controller):
                     data_only=True
                 )
 
-                sheet = wb.active
+                sheets_data = []
+                MAX_ROWS = 500  # prevent huge files freezing UI
 
-                for row in sheet.iter_rows(values_only=True):
-                    rows.append([
-                        str(cell) if cell is not None else ""
-                        for cell in row
-                    ])
+                for sheet_name in wb.sheetnames:
 
-            # CSV preview
+                    sheet = wb[sheet_name]
+                    rows = []
+
+                    for i, row in enumerate(sheet.iter_rows(values_only=True)):
+
+                        if i >= MAX_ROWS:
+                            break
+
+                        rows.append([
+                            str(cell) if cell is not None else ""
+                            for cell in row
+                        ])
+
+                    sheets_data.append({
+                        "name": sheet_name,
+                        "rows": rows
+                    })
+
+                return self._json_response({
+                    "sheets": sheets_data
+                })
+
+            # CSV Preview
             elif filename.endswith(".csv"):
 
                 file_content = file_data.decode("utf-8", errors="ignore")
@@ -57,11 +74,17 @@ class AttachmentPreviewController(http.Controller):
 
                 rows = list(reader)
 
+                return self._json_response({
+                    "sheets": [
+                        {
+                            "name": attachment.name,
+                            "rows": rows
+                        }
+                    ]
+                })
 
         except Exception as e:
             return self._json_response({"error": str(e)})
-
-        return self._json_response({"rows": rows})
 
     def _json_response(self, data):
         return request.make_response(
