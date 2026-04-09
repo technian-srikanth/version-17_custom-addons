@@ -1,5 +1,7 @@
-import {registry} from "@web/core/registry";
-import {browser} from "@web/core/browser/browser";
+/** @odoo-module **/
+
+import { registry } from "@web/core/registry";
+import { browser } from "@web/core/browser/browser";
 
 function requestPermission() {
     if (browser.Notification && browser.Notification.permission !== "granted") {
