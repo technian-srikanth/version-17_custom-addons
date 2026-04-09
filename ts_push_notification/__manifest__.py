@@ -2,7 +2,7 @@
     'name': 'PUSH NOTIFICATION',
     'depends': ['base', 'mail', 'bus'],
     'version': '17.0',
-    'description': """ """,
+    'description': """ windows notification from odoo to user """,
     'author': 'srikanth',
     'data': [
         'views/view_mail_activity.xml',
