@@ -11,16 +11,24 @@ class Base(models.AbstractModel):
     @api.model_create_multi
     def create(self, vals_list):
         records = super(Base, self).create(vals_list)
-        # if not self._context.get('skip_webhook'):
-        self._process_webhooks(records, 'on_create', data_list=vals_list)
+        if 'webhook.config' in self.env:
+            self._process_webhooks(records, 'on_create', data_list=vals_list)
         return records
 
     def write(self, vals):
         res = super(Base, self).write(vals)
-        self._process_webhooks(self, 'on_update', data_list=[vals])
+        if 'webhook.config' in self.env:
+            self._process_webhooks(self, 'on_update', data_list=[vals])
         return res
 
     def _process_webhooks(self, records, trigger_type, data_list=None):
+
+        self.env.cr.execute("""
+            SELECT to_regclass('public.webhook_config')
+        """)
+        if not self.env.cr.fetchone()[0]:
+            return
+
         webhooks = self.env['webhook.config'].sudo().search([
             ('model_id.model', '=', self._name),
             (trigger_type, '=', True),
@@ -30,7 +38,7 @@ class Base(models.AbstractModel):
         if not webhooks:
             return
 
-        for record, payload in zip(records, data_list):
+        for record, payload in zip(records, data_list or []):
             full_payload = dict(payload)
             full_payload['id'] = record.id
 
