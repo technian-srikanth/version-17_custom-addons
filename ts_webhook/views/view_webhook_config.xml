@@ -7,14 +7,16 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="url"/>
-                        <field name="active"/>
-                    </group>
-                    <group>
-                        <!--                    <field name="model_id"/>-->
-                        <field name="on_create"/>
-                        <field name="on_update"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="url"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="model_id"/>
+                            <field name="on_create"/>
+                            <field name="on_update"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -29,9 +31,9 @@
                 <field name="name"/>
                 <field name="url"/>
                 <field name="active"/>
-                <!--                <field name="model_id"/>-->
-                <field name="on_create"/>
-                <field name="on_update"/>
+                <field name="model_id"/>
+                <field name="on_create" optional="true"/>
+                <field name="on_update" optional="true"/>
             </tree>
         </field>
     </record>
@@ -40,6 +42,5 @@
         <field name="name">webhook</field>
         <field name="res_model">webhook.config</field>
         <field name="view_mode">tree,form</field>
-        <!--        <field name="view_id" ref="ts_webhook.view_webhook_config_tree"/>-->
     </record>
 </odoo>
