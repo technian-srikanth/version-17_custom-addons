@@ -35,17 +35,14 @@ DocumentPreview.template = xml`
             <button class="download-btn btn btn-secondary" t-on-click="downloadFile">
                 <i class="fa fa-download"/> Download
             </button>
-    
-            <button class="btn-close bg-white p-1 mr-2"
+            <button class="btn-close"
                     t-on-click="props.close"/>
         </div>
-    
     </div>
 </t>
 
 <div class="o_preview_container d-flex flex-column justify-content-center fixed bottom-0 m-0 p-0">
-    <div id="doc_viewer"
-         class="o_doc_viewer flex-grow-1 overflow-auto p-2">
+    <div id="doc_viewer" class="o_doc_viewer flex-grow-1 overflow-auto">
         Loading preview...
     </div>
 </div>
