@@ -34,8 +34,8 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
 }
 
 .o_doc_viewer {
-    width: 80%;
-    height: 100%;
+    height: 100vh;
+    width: 75%;
 }
 
 .o-main-components-container {
@@ -71,16 +71,16 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     font-weight: 500;
     letter-spacing: 0.5px;
     color: #e0e0e0;
-    margin-left: 4px;
+    margin-left: 24px;
     width: 60%;
 }
 
 .section-2 {
     display: flex;
-    justify-content: space-between;
+    justify-content: left;
     align-items: center;
     overflow: hidden !important;
-    width: 40%;
+    width: 15%;
 }
 
 .download-btn.btn.btn-secondary {
@@ -139,4 +139,13 @@ section.docx {
 
 .o_full_screen_preview > .modal-footer {
     border: none;
+}
+
+#pdf_container{
+    height: 100%;
+    width: 100%;
+}
+
+#pdf_container canvas {
+    width: 100%;
 }

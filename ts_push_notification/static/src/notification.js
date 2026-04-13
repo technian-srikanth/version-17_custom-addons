@@ -9,12 +9,21 @@ function requestPermission() {
     }
 }
 
-function showDesktopNotification(title, message) {
+
+function showDesktopNotification(title, message, image, link) {
+
     if (browser.Notification && browser.Notification.permission === "granted") {
-        new browser.Notification(title, {
+
+        const notification = new browser.Notification(title, {
             body: message,
-            icon: "/web/static/img/favicon.ico",
+            icon: image || "/web/static/img/favicon.ico",
         });
+
+        notification.onclick = function () {
+            if (link) {
+                window.open(link, "_blank");
+            }
+        };
     }
 }
 
@@ -33,7 +42,9 @@ const DesktopNotificationService = {
 
                     showDesktopNotification(
                         payload.title,
-                        payload.message
+                        payload.message,
+                        payload.image,
+                        payload.link,
                     );
 
                 }

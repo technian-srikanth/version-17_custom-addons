@@ -8,6 +8,8 @@ class MailActivity(models.Model):
         params = {
             "title": "Scheduled Updates",
             "message": "Periodic report is ready.",
+            'link':  '/web/login',
+            'image': '/ts_push_notification/static/description/icon.png',
         }
 
         if self.user_id:
