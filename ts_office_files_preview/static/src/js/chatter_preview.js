@@ -258,6 +258,17 @@ document.addEventListener("click", async function (ev) {
                     canvas.style.margin = "10px auto";
                     container.appendChild(canvas);
 
+
+                    const pageNumber = document.createElement("div");
+                    pageNumber.innerText = `Page ${pageNum} of ${pdf.numPages}`;
+
+                    pageNumber.style.textAlign = "right";
+                    pageNumber.style.fontSize = "10px";
+                    pageNumber.style.color = "#555";
+                    pageNumber.style.marginBottom = "10px";
+
+                    container.appendChild(pageNumber);
+
                     await page.render({
                         canvasContext: ctx,
                         viewport: viewport
