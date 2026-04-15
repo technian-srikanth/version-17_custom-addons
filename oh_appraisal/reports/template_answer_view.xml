@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="report_answers">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="record">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row mb-4" style="font-size: 20px; ">
+                            <div class="col-6">
+                                <div class="mb-2">
+                                    <t class="fw-bold">Survey:
+                                        <span t-field="record.survey_id.title"/>
+                                    </t>
+                                </div>
+                                <div class="mb-2">
+                                    <t class="fw-bold mt-2">Date:
+                                        <span t-field="record.create_date"/>
+                                    </t>
+                                </div>
+                                <div class="mb-2">
+                                    <t class="fw-bold mt-2">Last date:
+                                        <span t-field="record.deadline"/>
+                                    </t>
+                                </div>
+
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-2">
+                                    <t class="fw-bold">
+                                        Score:
+                                        <span t-field="record.scoring_percentage"
+                                              t-options='{"widget": "float", "precision": 2}'/>%
+                                    </t>
+                                </div>
+                                <div class="mb-2">
+                                    <t class="fw-bold mt-2">Contact:
+                                        <span t-field="record.partner_id.name"/>
+                                    </t>
+                                </div>
+                                <div class="mb-2">
+                                    <t class="fw-bold mt-2">Email:
+                                        <span t-field="record.email"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 border-bottom pb-1" style="font-size: 20px; ">Response Details</div>
+                    <table class="table-borderless">
+                        <tbody>
+                            <t t-foreach="record.user_input_line_ids" t-as="line_id">
+                                <tr class="bg-light">
+                                    <td class="p-1">
+                                        <strong style="font-size: 24px; " class="ps-3">
+                                            Q.
+                                            <span class="pl-2" t-esc="line_id.question_id.title"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2" style="font-size: 20px; ">
+                                        <div class="ps-3 pl-3" t-esc="line_id.display_name"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

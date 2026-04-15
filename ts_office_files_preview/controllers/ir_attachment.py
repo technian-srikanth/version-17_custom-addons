@@ -89,56 +89,56 @@ class AttachmentPreviewController(http.Controller):
         except Exception as e:
             return self._json_response({"error": str(e)})
 
-    @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
-    def ppt_preview(self, attachment_id):
-
-        attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-
-
-        print(attachment)
-
-        if not attachment.exists() or not attachment.datas:
-            return request.not_found()
-
-        try:
-
-            file_data = base64.b64decode(attachment.datas)
-
-            with tempfile.TemporaryDirectory() as tmpdir:
-
-                ppt_path = os.path.join(tmpdir, attachment.name)
-                pdf_path = ppt_path.replace(".pptx", ".pdf")
-
-                # Save PPT file
-                with open(ppt_path, "wb") as f:
-                    f.write(file_data)
-
-                # Convert PPT → PDF
-                subprocess.run([
-                    r"C:\Program Files\LibreOffice\program\soffice.exe",
-                    "--headless",
-                    "--convert-to", "pdf",
-                    ppt_path,
-                    "--outdir", tmpdir
-                ], check=True)
-
-                # Return PDF
-                with open(pdf_path, "rb") as pdf:
-                    content = pdf.read()
-
-                return request.make_response(
-                    content,
-                    headers=[
-                        ("Content-Type", "application/pdf"),
-                        ("Content-Length", len(content))
-                    ]
-                )
-
-        except Exception as e:
-            return request.make_response(
-                str(e),
-                headers=[("Content-Type", "text/plain")]
-            )
+    # @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
+    # def ppt_preview(self, attachment_id):
+    #
+    #     attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
+    #
+    #
+    #     print(attachment)
+    #
+    #     if not attachment.exists() or not attachment.datas:
+    #         return request.not_found()
+    #
+    #     try:
+    #
+    #         file_data = base64.b64decode(attachment.datas)
+    #
+    #         with tempfile.TemporaryDirectory() as tmpdir:
+    #
+    #             ppt_path = os.path.join(tmpdir, attachment.name)
+    #             pdf_path = ppt_path.replace(".pptx", ".pdf")
+    #
+    #             # Save PPT file
+    #             with open(ppt_path, "wb") as f:
+    #                 f.write(file_data)
+    #
+    #             # Convert PPT → PDF
+    #             subprocess.run([
+    #                 r"C:\Program Files\LibreOffice\program\soffice.exe",
+    #                 "--headless",
+    #                 "--convert-to", "pdf",
+    #                 ppt_path,
+    #                 "--outdir", tmpdir
+    #             ], check=True)
+    #
+    #             # Return PDF
+    #             with open(pdf_path, "rb") as pdf:
+    #                 content = pdf.read()
+    #
+    #             return request.make_response(
+    #                 content,
+    #                 headers=[
+    #                     ("Content-Type", "application/pdf"),
+    #                     ("Content-Length", len(content))
+    #                 ]
+    #             )
+    #
+    #     except Exception as e:
+    #         return request.make_response(
+    #             str(e),
+    #             headers=[("Content-Type", "text/plain")]
+    #         )
 
     def _json_response(self, data):
         return request.make_response(

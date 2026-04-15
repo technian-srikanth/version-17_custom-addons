@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="action_report_answer" model="ir.actions.report">
+        <field name="name">PDF Report</field>
+        <field name="model">survey.user_input</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">oh_appraisal.report_answers</field>
+        <field name="report_file">oh_appraisal.report_answers</field>
+        <field name="paperformat_id" ref="oh_appraisal.paperformat_answer_report_id"/>
+        <!--        <field name="print_report_name">'Badge - %s' % (object.name).replace('/', '')</field>-->
+        <field name="binding_model_id" ref="model_survey_user_input"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <record id="paperformat_answer_report_id" model="report.paperformat">
+            <field name="name">A4-answer</field>
+            <field name="default" eval="True" />
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">24</field>
+            <field name="margin_bottom">24</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">20</field>
+            <field name="dpi">125</field>
+        </record>
+</odoo>
