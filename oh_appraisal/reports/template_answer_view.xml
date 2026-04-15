@@ -47,19 +47,19 @@
                     </div>
 
                     <div class="mb-4 border-bottom pb-1" style="font-size: 20px; ">Response Details</div>
-                    <table class="table-borderless">
+                    <table class="table-borderless" style="width: 100%;">
                         <tbody>
                             <t t-foreach="record.user_input_line_ids" t-as="line_id">
                                 <tr class="bg-light">
                                     <td class="p-1">
-                                        <strong style="font-size: 24px; " class="ps-3">
+                                        <strong style="font-size: 22px; line-height: 1.5;" class="ps-3">
                                             Q.
                                             <span class="pl-2" t-esc="line_id.question_id.title"/>
                                         </strong>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="p-2" style="font-size: 20px; ">
+                                    <td class="p-2" style="font-size: 21px; line-height: 1.5;">
                                         <div class="ps-3 pl-3" t-esc="line_id.display_name"/>
                                     </td>
                                 </tr>
