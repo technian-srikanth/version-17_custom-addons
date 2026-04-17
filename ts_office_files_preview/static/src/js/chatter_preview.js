@@ -166,34 +166,34 @@ document.addEventListener("click", async function (ev) {
             splitDocxPages(container);
         }
         /* PPTX - Aspose High Fidelity */
-        else if (filename.endsWith(".pptx")) {
-            const viewer = document.getElementById("doc_viewer");
-            if (!viewer) return;
-
-            viewer.innerHTML = `<div class="text-center p-5"><i class="fa fa-spin fa-spinner"/> Generating high-fidelity preview...</div>`;
-
-            try {
-                // Fetch the converted HTML from our new controller
-                const response = await fetch(`/ppt/preview/${attachmentId}`);
-                if (!response.ok) throw new Error("Conversion failed");
-
-                const htmlContent = await response.text();
-
-                // Use an iframe to isolate the Aspose styles and ensure exact layout
-                viewer.innerHTML = `
-                        <iframe id="pptx_iframe" 
-                                style="width:100%; height:100%; border:none;" 
-                                srcdoc='${htmlContent.replace(/'/g, "&apos;")}'>
-                        </iframe>`;
-
-            } catch (error) {
-                console.error("PPT Aspose preview failed:", error);
-                viewer.innerHTML = `
-                        <div class="alert alert-danger m-3">
-                            Exact preview failed. Please download the file to view.
-                        </div>`;
-            }
-        }
+        // else if (filename.endsWith(".pptx")) {
+        //     const viewer = document.getElementById("doc_viewer");
+        //     if (!viewer) return;
+        //
+        //     viewer.innerHTML = `<div class="text-center p-5"><i class="fa fa-spin fa-spinner"/> Generating high-fidelity preview...</div>`;
+        //
+        //     try {
+        //         // Fetch the converted HTML from our new controller
+        //         const response = await fetch(`/ppt/preview/${attachmentId}`);
+        //         if (!response.ok) throw new Error("Conversion failed");
+        //
+        //         const htmlContent = await response.text();
+        //
+        //         // Use an iframe to isolate the Aspose styles and ensure exact layout
+        //         viewer.innerHTML = `
+        //                 <iframe id="pptx_iframe"
+        //                         style="width:100%; height:100%; border:none;"
+        //                         srcdoc='${htmlContent.replace(/'/g, "&apos;")}'>
+        //                 </iframe>`;
+        //
+        //     } catch (error) {
+        //         console.error("PPT Aspose preview failed:", error);
+        //         viewer.innerHTML = `
+        //                 <div class="alert alert-danger m-3">
+        //                     Exact preview failed. Please download the file to view.
+        //                 </div>`;
+        //     }
+        // }
         // } else if (filename.endsWith(".pptx")) {
         //     const viewer = document.getElementById("doc_viewer");
         //
@@ -235,75 +235,75 @@ document.addEventListener("click", async function (ev) {
         //         }
         //     }, 50);
         // }
-        // else if (filename.endsWith(".pptx")) {
-        //
-        //     const viewer = document.getElementById("doc_viewer");
-        //     if (!viewer) return;
-        //
-        //     viewer.innerHTML = `<div id="pdf_container"></div>`;
-        //
-        //     try {
-        //
-        //         const response = await fetch(`/ppt/preview/${attachmentId}`);
-        //         const pdfData = await response.arrayBuffer();
-        //
-        //         // load PDF.js
-        //         const pdfModule = await import("/ts_office_files_preview/static/lib/pdf.mjs");
-        //         const pdfjsLib = pdfModule;
-        //
-        //         pdfjsLib.GlobalWorkerOptions.workerSrc =
-        //             "/ts_office_files_preview/static/lib/pdf.worker.mjs";
-        //
-        //         const loadingTask = pdfjsLib.getDocument({data: pdfData});
-        //         const pdf = await loadingTask.promise;
-        //
-        //         const container = document.getElementById("pdf_container");
-        //
-        //         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        //
-        //             const page = await pdf.getPage(pageNum);
-        //
-        //             const viewport = page.getViewport({scale: 1 });
-        //
-        //             const canvas = document.createElement("canvas");
-        //             const ctx = canvas.getContext("2d");
-        //
-        //             canvas.height = viewport.height;
-        //             canvas.width = viewport.width;
-        //
-        //             canvas.style.display = "block";
-        //             canvas.style.margin = "10px auto";
-        //             container.appendChild(canvas);
-        //
-        //
-        //             const pageNumber = document.createElement("div");
-        //             pageNumber.innerText = `Page ${pageNum} of ${pdf.numPages}`;
-        //
-        //             pageNumber.style.textAlign = "right";
-        //             pageNumber.style.fontSize = "10px";
-        //             pageNumber.style.color = "#555";
-        //             pageNumber.style.marginBottom = "10px";
-        //
-        //             container.appendChild(pageNumber);
-        //
-        //             await page.render({
-        //                 canvasContext: ctx,
-        //                 viewport: viewport
-        //             }).promise;
-        //         }
-        //
-        //     } catch (err) {
-        //
-        //         console.error("PDF preview failed:", err);
-        //
-        //         viewer.innerHTML = `
-        //     <div style="padding:10px">
-        //         Preview not supported.<br>
-        //         Please download the file.
-        //     </div>
-        // `;
-        //     }
-        // }
+        else if (filename.endsWith(".pptx")) {
+
+            const viewer = document.getElementById("doc_viewer");
+            if (!viewer) return;
+
+            viewer.innerHTML = `<div id="pdf_container"></div>`;
+
+            try {
+
+                const response = await fetch(`/ppt/preview/${attachmentId}`);
+                const pdfData = await response.arrayBuffer();
+
+                // load PDF.js
+                const pdfModule = await import("/ts_office_files_preview/static/lib/pdf.mjs");
+                const pdfjsLib = pdfModule;
+
+                pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    "/ts_office_files_preview/static/lib/pdf.worker.mjs";
+
+                const loadingTask = pdfjsLib.getDocument({data: pdfData});
+                const pdf = await loadingTask.promise;
+
+                const container = document.getElementById("pdf_container");
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+
+                    const page = await pdf.getPage(pageNum);
+
+                    const viewport = page.getViewport({scale: 1 });
+
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    canvas.style.display = "block";
+                    canvas.style.margin = "10px auto";
+                    container.appendChild(canvas);
+
+
+                    const pageNumber = document.createElement("div");
+                    pageNumber.innerText = `Page ${pageNum} of ${pdf.numPages}`;
+
+                    pageNumber.style.textAlign = "right";
+                    pageNumber.style.fontSize = "10px";
+                    pageNumber.style.color = "#555";
+                    pageNumber.style.marginBottom = "10px";
+
+                    container.appendChild(pageNumber);
+
+                    await page.render({
+                        canvasContext: ctx,
+                        viewport: viewport
+                    }).promise;
+                }
+
+            } catch (err) {
+
+                console.error("PDF preview failed:", err);
+
+                viewer.innerHTML = `
+            <div style="padding:10px">
+                Preview not supported.<br>
+                Please download the file.
+            </div>
+        `;
+            }
+        }
     }, 200);
 });
 
