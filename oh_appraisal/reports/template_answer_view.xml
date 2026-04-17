@@ -8,17 +8,17 @@
                         <div class="row mb-4" style="font-size: 20px; ">
                             <div class="col-6">
                                 <div class="mb-2">
-                                    <t class="fw-bold">Survey:
+                                    <t class="fw-bold" t-if="record.survey_id">Survey:
                                         <span t-field="record.survey_id.title"/>
                                     </t>
                                 </div>
                                 <div class="mb-2">
-                                    <t class="fw-bold mt-2">Date:
+                                    <t class="fw-bold mt-2" t-if="record.create_date">Date:
                                         <span t-field="record.create_date"/>
                                     </t>
                                 </div>
                                 <div class="mb-2">
-                                    <t class="fw-bold mt-2">Last date:
+                                    <t class="fw-bold mt-2" t-if="record.deadline">Last date:
                                         <span t-field="record.deadline"/>
                                     </t>
                                 </div>
@@ -26,19 +26,19 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-2">
-                                    <t class="fw-bold">
+                                    <t class="fw-bold" t-if="record.scoring_percentage">
                                         Score:
                                         <span t-field="record.scoring_percentage"
                                               t-options='{"widget": "float", "precision": 2}'/>%
                                     </t>
                                 </div>
                                 <div class="mb-2">
-                                    <t class="fw-bold mt-2">Contact:
+                                    <t class="fw-bold mt-2" t-if="record.partner_id">Contact:
                                         <span t-field="record.partner_id.name"/>
                                     </t>
                                 </div>
                                 <div class="mb-2">
-                                    <t class="fw-bold mt-2">Email:
+                                    <t class="fw-bold mt-2" t-if="record.email">Email:
                                         <span t-field="record.email"/>
                                     </t>
                                 </div>

@@ -1,8 +1,9 @@
 {
-    'name': 'RECORD DATA IN JSON ',
+    'name': 'RECORD WEBHOOK AUTOMATION',
     'version': '17.0',
-    'author': 'srikanth',
+    'author': 'Nians',
     'depends': ['base', ],
+    "website": "www.nians.com",
     'description': """ Automatically sends JSON data to a webhook whenever records are created or updated. """,
     'data': [
         'security/ir.model.access.csv',
