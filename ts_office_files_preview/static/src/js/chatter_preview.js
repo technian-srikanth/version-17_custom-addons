@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
-import {Dialog} from "@web/core/dialog/dialog";
-import {Component, xml} from "@odoo/owl";
+import { Dialog } from "@web/core/dialog/dialog";
+import { Component, xml } from "@odoo/owl";
 
 
 export class DocumentPreview extends Component {
@@ -164,47 +164,77 @@ document.addEventListener("click", async function (ev) {
             });
 
             splitDocxPages(container);
-        } else if (filename.endsWith(".pptx")) {
-            const viewer = document.getElementById("doc_viewer");
-
-            if (!viewer) {
-                setTimeout(() => {
-                    const retryViewer = document.getElementById("doc_viewer");
-                    if (retryViewer) this._renderPPT(fileUrl);
-                }, 150);
-                return;
-            }
-
-            viewer.innerHTML = `<div id="pptx_viewer_container" style="width:100%; height:100%;"></div>`;
-
-            setTimeout(() => {
-                const container = $("#pptx_viewer_container");
-                if (container.length > 0) {
-                    try {
-                        container.pptxToHtml({
-                            pptxFileUrl: fileUrl,
-                            fileInputId: null,
-                            slideMode: false,
-                            keyBoardShortCut: true,
-                            slideModeConfig: {
-                                first: 1,
-                                nav: true,
-                                navDetails: true,
-                                showSlideNumber: true,
-                            }
-                        });
-                    } catch (error) {
-                        console.error("PPT preview failed:", error);
-                        viewer.innerHTML = `
-                                <div style="padding:20px">
-                                    Preview not supported for this PPT file.<br>
-                                    Please download to view.
-                                </div>
-                            `;
-                    }
-                }
-            }, 50);
         }
+        /* PPTX - Aspose High Fidelity */
+        else if (filename.endsWith(".pptx")) {
+            const viewer = document.getElementById("doc_viewer");
+            if (!viewer) return;
+
+            viewer.innerHTML = `<div class="text-center p-5"><i class="fa fa-spin fa-spinner"/> Generating high-fidelity preview...</div>`;
+
+            try {
+                // Fetch the converted HTML from our new controller
+                const response = await fetch(`/ppt/preview/${attachmentId}`);
+                if (!response.ok) throw new Error("Conversion failed");
+
+                const htmlContent = await response.text();
+
+                // Use an iframe to isolate the Aspose styles and ensure exact layout
+                viewer.innerHTML = `
+                        <iframe id="pptx_iframe" 
+                                style="width:100%; height:100%; border:none;" 
+                                srcdoc='${htmlContent.replace(/'/g, "&apos;")}'>
+                        </iframe>`;
+
+            } catch (error) {
+                console.error("PPT Aspose preview failed:", error);
+                viewer.innerHTML = `
+                        <div class="alert alert-danger m-3">
+                            Exact preview failed. Please download the file to view.
+                        </div>`;
+            }
+        }
+        // } else if (filename.endsWith(".pptx")) {
+        //     const viewer = document.getElementById("doc_viewer");
+        //
+        //     if (!viewer) {
+        //         setTimeout(() => {
+        //             const retryViewer = document.getElementById("doc_viewer");
+        //             if (retryViewer) this._renderPPT(fileUrl);
+        //         }, 150);
+        //         return;
+        //     }
+        //
+        //     viewer.innerHTML = `<div id="pptx_viewer_container" style="width:100%; height:100%;"></div>`;
+        //
+        //     setTimeout(() => {
+        //         const container = $("#pptx_viewer_container");
+        //         if (container.length > 0) {
+        //             try {
+        //                 container.pptxToHtml({
+        //                     pptxFileUrl: fileUrl,
+        //                     fileInputId: null,
+        //                     slideMode: false,
+        //                     keyBoardShortCut: true,
+        //                     slideModeConfig: {
+        //                         first: 1,
+        //                         nav: true,
+        //                         navDetails: true,
+        //                         showSlideNumber: true,
+        //                     }
+        //                 });
+        //             } catch (error) {
+        //                 console.error("PPT preview failed:", error);
+        //                 viewer.innerHTML = `
+        //                         <div style="padding:20px">
+        //                             Preview not supported for this PPT file.<br>
+        //                             Please download to view.
+        //                         </div>
+        //                     `;
+        //             }
+        //         }
+        //     }, 50);
+        // }
         // else if (filename.endsWith(".pptx")) {
         //
         //     const viewer = document.getElementById("doc_viewer");
