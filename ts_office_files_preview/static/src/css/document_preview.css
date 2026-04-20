@@ -119,15 +119,23 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
 }
 
 section.docx {
-    width: 794px;
-    min-height: 1123px;
-    padding: 72px;
+    width: 820px;
+    height: 1123px;
+    box-sizing: border-box;
     background: white;
-    margin-bottom: 40px;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
     position: relative;
-
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+
+article > * {
+    max-width: 100% !important;
+    height: auto !important;
+    clear: both;
+}
+
 
 .docx-page-number {
     position: absolute;
@@ -148,4 +156,12 @@ section.docx {
 
 #pdf_container canvas {
     width: 100%;
+}
+
+.docx {
+    page-break-after: always;
+}
+
+article > * {
+    page-break-inside: avoid;
 }
