@@ -1,12 +1,15 @@
 import requests
 from odoo import models, fields
 from bs4 import BeautifulSoup
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class HrJob(models.Model):
     _inherit = "hr.job"
 
-    wp_post_id = fields.Char(string="WordPress Job ID",tracking=True)
+    wp_post_id = fields.Char(string="WordPress Job ID", tracking=True)
     work_location_id = fields.Many2many('hr.work.location', string='Work Location')
     tasks_responsibilities_ids = fields.One2many("job.task.responsibilities", string="Tasks and Responsibilities",
                                                  inverse_name="job_id")
@@ -14,12 +17,10 @@ class HrJob(models.Model):
                                                 inverse_name="job_id")
 
     def _sync_jobs_to_wp(self):
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
-
         config = self.env['ir.config_parameter'].sudo()
         username = (config.get_param('wp_username') or "").strip()
         password = (config.get_param('wp_password') or "").strip()
-
+        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
         for job in self:
 
             if job.description and job.name:
@@ -93,7 +94,6 @@ class HrJob(models.Model):
                     if response.status_code in (200, 201):
                         job.wp_post_id = response.json().get("id")
 
-                # ERROR HANDLING
                 if response.status_code not in (200, 201):
                     raise Exception(f"WP Error: {response.text}")
 
@@ -105,16 +105,56 @@ class HrJob(models.Model):
         jobs = self.search([])
         jobs._sync_jobs_to_wp()
 
+    def unlink(self):
+        config = self.env['ir.config_parameter'].sudo()
+        username = config.get_param('wp_username', '').strip()
+        password = config.get_param('wp_password', '').strip()
+        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
+
+        _logger.info("Starting unlink process for %s records", len(self))
+
+        for job in self:
+            if job.wp_post_id:
+                wp_id = int(job.wp_post_id)
+                _logger.info("Attempting to delete WP Post ID: %s", wp_id)
+
+                try:
+                    response = requests.delete(
+                        f"{base_url}/{wp_id}",
+                        auth=(username, password),
+                        params={'force': False},
+                        timeout=15
+                    )
+
+                    if response.status_code == 200:
+                        _logger.info("Successfully trashed WP ID: %s", wp_id)
+                    else:
+                        _logger.warning("WP ID %s not deleted. Status: %s | Response: %s",
+                                        wp_id, response.status_code, response.text)
+
+                except requests.exceptions.Timeout:
+                    _logger.error("Timeout: WordPress site took too long to respond for ID %s", wp_id)
+                except Exception as e:
+                    _logger.error("Unexpected error for WP ID %s: %s", wp_id, e)
+            else:
+                _logger.info("Odoo record %s has no wp_post_id, skipping WP deletion", job.id)
+
+        return super(HrJob, self).unlink()
+
 
 class HrJobResponsibilities(models.Model):
     _name = "job.task.responsibilities"
+    _order = 'sequence'
 
+    sequence = fields.Integer("Sequence", default=10)
     name = fields.Text(string="Description")
     job_id = fields.Many2one("hr.job", string="Job")
 
 
 class HRSkillsQualifications(models.Model):
     _name = "job.skills.qualifications"
+    _order = 'sequence'
 
+    sequence = fields.Integer("Sequence", default=10)
     name = fields.Text(string="Description")
     job_id = fields.Many2one("hr.job", string="Job")

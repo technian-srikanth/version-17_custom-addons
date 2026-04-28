@@ -1,19 +1,21 @@
 from odoo import fields, models
 import requests
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
-class HrJobDepartment(models.Model):
+class HrDepartment(models.Model):
     _inherit = 'hr.department'
 
-    wp_post_id = fields.Char(string="WordPress Department ID",tracking=True)
+    wp_post_id = fields.Char(string="WordPress Department ID", tracking=True)
 
     def _sync_department_to_wp(self):
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
-
         config = self.env['ir.config_parameter'].sudo()
         username = (config.get_param('wp_username') or "").strip()
         password = (config.get_param('wp_password') or "").strip()
 
+        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
         for department in self:
 
             if department.name:
@@ -50,3 +52,28 @@ class HrJobDepartment(models.Model):
 
         departments = self.search([])
         departments._sync_department_to_wp()
+
+    def unlink(self):
+        config = self.env['ir.config_parameter'].sudo()
+        username = config.get_param('wp_username', '').strip()
+        password = config.get_param('wp_password', '').strip()
+        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
+
+        for department in self:
+            if department.wp_post_id:
+                try:
+                    response = requests.delete(
+                        f"{base_url}/{int(department.wp_post_id)}",
+                        auth=(username, password),
+                        params={'force': True},
+                        timeout=60
+                    )
+                    if response.status_code not in [200, 201]:
+                        _logger.error(f"WP Delete Failed ({response.status_code}): {response.text}")
+                    else:
+                        _logger.info(f"Successfully deleted WP ID {department.wp_post_id}")
+
+                except Exception as e:
+                    _logger.error(f"Network error while deleting WP ID {department.wp_post_id}: {e}")
+
+        return super(HrDepartment, self).unlink()
