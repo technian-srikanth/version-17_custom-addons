@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.AttachmentViewer" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_AttachmentViewer_icon')]" position="inside">
+            <t t-if="attachmentViewer.attachmentViewerViewable.isDocx">
+                <i class="fa fa-file-word-o" role="img" title="Docx file"/>
+            </t>
+            <t t-if="attachmentViewer.attachmentViewerViewable.isXLSX">
+                <i class="fa fa-file-excel-o" role="img" title="Excel file"/>
+            </t>
+            <t t-if="attachmentViewer.attachmentViewerViewable.isPPTX">
+                <i class="fa fa-file-powerpoint-o" role="img" title="Powerpoint file"/>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('o_AttachmentViewer_main')]" position="inside">
+            <div t-if="attachmentViewer.attachmentViewerViewable.isOfficeFile"
+                 id="ms-office-root"
+                 class="o_AttachmentViewer_view o_AttachmentViewer_viewIframe w-75 h-100 border-0"
+                 t-att-class="{ 'w-100': messaging.device.isSmall }"
+                 style="position: relative;"
+                 t-on-click="attachmentViewer.onClickImage"
+                 t-on-mousedown="_onMousedownImage">
+                <div id="ms-office-container" class="ms-office-container w-100" t-ref="ViewerMsOffice">
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

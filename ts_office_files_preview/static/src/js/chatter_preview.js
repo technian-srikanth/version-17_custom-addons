@@ -1,8 +1,6 @@
 /** @odoo-module **/
-
 import {Dialog} from "@web/core/dialog/dialog";
 import {Component, xml} from "@odoo/owl";
-
 
 export class DocumentPreview extends Component {
 
@@ -144,230 +142,92 @@ document.addEventListener("click", async function (ev) {
         }
         /* DOCX */
 
-        else if (filename.endsWith(".docx")) {
+        else if (filename.toLowerCase().endsWith(".docx")) {
 
             const viewer = document.getElementById("doc_viewer");
+            viewer.innerHTML = "Loading preview...";
 
-            const file = await fetch(fileUrl).then(r => r.arrayBuffer());
+            try {
+                const response = await fetch(`/web/content/${attachmentId}`);
+                const arrayBuffer = await response.arrayBuffer();
 
-            viewer.innerHTML = `<div class="docx-wrapper"></div>`;
+                const result = await mammoth.convertToHtml({arrayBuffer});
 
-            const container = viewer.querySelector(".docx-wrapper");
-
-            console.log('container', container)
-
-            await docx.renderAsync(file, container, null, {
-                className: "docx",
-                inWrapper: false,
-                ignoreWidth: true,
-                ignoreHeight: true,
-                ignoreLastRenderedPageBreak: false
-            });
-
-            splitDocxPages(container);
-        }
-            /* PPTX - Aspose High Fidelity */
-            // else if (filename.endsWith(".pptx")) {
-            //     const viewer = document.getElementById("doc_viewer");
-            //     if (!viewer) return;
-            //
-            //     viewer.innerHTML = `<div class="text-center p-5"><i class="fa fa-spin fa-spinner"/> Generating high-fidelity preview...</div>`;
-            //
-            //     try {
-            //         // Fetch the converted HTML from our new controller
-            //         const response = await fetch(`/ppt/preview/${attachmentId}`);
-            //         if (!response.ok) throw new Error("Conversion failed");
-            //
-            //         const htmlContent = await response.text();
-            //
-            //         // Use an iframe to isolate the Aspose styles and ensure exact layout
-            //         viewer.innerHTML = `
-            //                 <iframe id="pptx_iframe"
-            //                         style="width:100%; height:100%; border:none;"
-            //                         srcdoc='${htmlContent.replace(/'/g, "&apos;")}'>
-            //                 </iframe>`;
-            //
-            //     } catch (error) {
-            //         console.error("PPT Aspose preview failed:", error);
-            //         viewer.innerHTML = `
-            //                 <div class="alert alert-danger m-3">
-            //                     Exact preview failed. Please download the file to view.
-            //                 </div>`;
-            //     }
-            // }
-            // } else if (filename.endsWith(".pptx")) {
-            //     const viewer = document.getElementById("doc_viewer");
-            //
-            //     if (!viewer) {
-            //         setTimeout(() => {
-            //             const retryViewer = document.getElementById("doc_viewer");
-            //             if (retryViewer) this._renderPPT(fileUrl);
-            //         }, 150);
-            //         return;
-            //     }
-            //
-            //     viewer.innerHTML = `<div id="pptx_viewer_container" style="width:100%; height:100%;"></div>`;
-            //
-            //     setTimeout(() => {
-            //         const container = $("#pptx_viewer_container");
-            //         if (container.length > 0) {
-            //             try {
-            //                 container.pptxToHtml({
-            //                     pptxFileUrl: fileUrl,
-            //                     fileInputId: null,
-            //                     slideMode: false,
-            //                     keyBoardShortCut: true,
-            //                     slideModeConfig: {
-            //                         first: 1,
-            //                         nav: true,
-            //                         navDetails: true,
-            //                         showSlideNumber: true,
-            //                     }
-            //                 });
-            //             } catch (error) {
-            //                 console.error("PPT preview failed:", error);
-            //                 viewer.innerHTML = `
-            //                         <div style="padding:20px">
-            //                             Preview not supported for this PPT file.<br>
-            //                             Please download to view.
-            //                         </div>
-            //                     `;
-            //             }
-            //         }
-            //     }, 50);
-            // }
-            else if (filename.endsWith(".pptx")) {
-
-                const viewer = document.getElementById("doc_viewer");
-                if (!viewer) return;
-
-                viewer.innerHTML = `<div id="pdf_container"></div>`;
-
-                try {
-
-                    const response = await fetch(`/ppt/preview/${attachmentId}`);
-                    const pdfData = await response.arrayBuffer();
-
-                    // load PDF.js
-                    const pdfModule = await import("/ts_office_files_preview/static/lib/pdf.mjs");
-                    const pdfjsLib = pdfModule;
-
-                    pdfjsLib.GlobalWorkerOptions.workerSrc =
-                        "/ts_office_files_preview/static/lib/pdf.worker.mjs";
-
-                    const loadingTask = pdfjsLib.getDocument({data: pdfData});
-                    const pdf = await loadingTask.promise;
-
-                    const container = document.getElementById("pdf_container");
-
-                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-
-                        const page = await pdf.getPage(pageNum);
-
-                        const viewport = page.getViewport({scale: 1 });
-
-                        const canvas = document.createElement("canvas");
-                        const ctx = canvas.getContext("2d");
-
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-
-                        canvas.style.display = "block";
-                        canvas.style.margin = "10px auto";
-                        container.appendChild(canvas);
-
-
-                        const pageNumber = document.createElement("div");
-                        pageNumber.innerText = `Page ${pageNum} of ${pdf.numPages}`;
-
-                        pageNumber.style.textAlign = "right";
-                        pageNumber.style.fontSize = "10px";
-                        pageNumber.style.color = "#555";
-                        pageNumber.style.marginBottom = "10px";
-
-                        container.appendChild(pageNumber);
-
-                        await page.render({
-                            canvasContext: ctx,
-                            viewport: viewport
-                        }).promise;
-                    }
-
-                } catch (err) {
-
-                    console.error("PDF preview failed:", err);
-
-                    viewer.innerHTML = `
-                <div style="padding:10px">
-                    Preview not supported.<br>
-                    Please download the file.
+                viewer.innerHTML = `
+            <div class="pdf-viewer">
+                <div class="doc-content">
+                    ${result.value}
                 </div>
+            </div>
+        `;
+
+                // wait for DOM render
+                setTimeout(async () => {
+
+                    // wait for images
+                    const images = viewer.querySelectorAll("img");
+                    await Promise.all([...images].map(img => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(res => {
+                            img.onload = res;
+                            img.onerror = res;
+                        });
+                    }));
+
+                    splitIntoPdfPages();
+
+                }, 100);
+
+            } catch (err) {
+                console.error("DOCX preview failed:", err);
+                viewer.innerHTML = "❌ Failed to render document";
+            }
+        } else if (filename.toLowerCase().endsWith(".pptx")) {
+
+            const viewer = document.getElementById("doc_viewer");
+            if (!viewer) return;
+
+            viewer.innerHTML = `
+                <div id="pptx_container" style="width:100%; height:100%; overflow:auto;"></div>
             `;
-                }
+
+            const fileUrl = `/web/content/${attachmentId}`;
+
+            try {
+                console.log("Initializing SlideJS...");
+
+                window.slideJS = window.createSlideJS();
+
+                const response = await fetch(fileUrl);
+                const fileBlob = await response.blob();
+
+                console.log("Parsing PPTX...");
+
+
+                window.slideParser(fileBlob, () => {
+
+                    console.log("Rendering slides...");
+
+                    const container = document.getElementById("pptx_container");
+                    container.style.display = "flex";
+                    container.style.justifyContent = "center";
+                    container.style.alignItems = "center";
+                    container.style.height = "80%";
+
+                    window.slideAfterRender(container, () => {
+                        console.log("Render complete");
+                    });
+
+                }, (error) => {
+                    console.error("SlideJS parse error:", error);
+                    viewer.innerHTML = "❌ Failed to parse PPTX";
+                });
+
+            } catch (err) {
+                console.error("PPTX load failed:", err);
+                viewer.innerHTML = "❌ Failed to load PPTX";
+            }
         }
-        // else if (filename.endsWith(".pptx")) {
-        //     const viewer = document.getElementById("doc_viewer");
-        //     if (!viewer) return;
-        //
-        //     // 1. Add a loading spinner immediately
-        //     viewer.innerHTML = `
-        //     <div id="pdf_container" style="position:relative; min-height:200px;">
-        //         <div id="preview_loader" style="text-align:center; padding:20px;">
-        //             <i class="fa fa-spinner fa-spin"></i> Converting Presentation...
-        //         </div>
-        //     </div>`;
-        //
-        //     try {
-        //         const response = await fetch(`/ppt/preview/${attachmentId}`);
-        //         if (!response.ok) throw new Error("Conversion failed");
-        //
-        //         const pdfData = await response.arrayBuffer();
-        //         const pdfModule = await import("/ts_office_files_preview/static/lib/pdf.mjs");
-        //         const pdfjsLib = pdfModule;
-        //
-        //         pdfjsLib.GlobalWorkerOptions.workerSrc = "/ts_office_files_preview/static/lib/pdf.worker.mjs";
-        //
-        //         const loadingTask = pdfjsLib.getDocument({data: pdfData});
-        //         const pdf = await loadingTask.promise;
-        //
-        //         const container = document.getElementById("pdf_container");
-        //         document.getElementById("preview_loader").remove();
-        //         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        //             const page = await pdf.getPage(pageNum);
-        //             const viewport = page.getViewport({scale: 1});
-        //
-        //             const canvas = document.createElement("canvas");
-        //             const ctx = canvas.getContext("2d");
-        //             canvas.height = viewport.height;
-        //             canvas.width = viewport.width;
-        //             canvas.style.display = "block";
-        //             canvas.style.margin = "10px auto";
-        //             canvas.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Make it look like a slide
-        //             container.appendChild(canvas);
-        //
-        //             const pageNumber = document.createElement("div");
-        //             pageNumber.innerText = `Slide ${pageNum} of ${pdf.numPages}`;
-        //             pageNumber.style.textAlign = "center";
-        //             pageNumber.style.fontSize = "12px";
-        //             pageNumber.style.marginBottom = "20px";
-        //             container.appendChild(pageNumber);
-        //             const renderTask = page.render({
-        //                 canvasContext: ctx,
-        //                 viewport: viewport
-        //             });
-        //
-        //             if (pageNum === 1) {
-        //                 await renderTask.promise;
-        //             } else {
-        //                 renderTask.promise.catch(e => console.error("Render error:", e));
-        //             }
-        //         }
-        //
-        //     } catch (err) {
-        //         console.error("PDF preview failed:", err);
-        //         viewer.innerHTML = `<div style="padding:10px">Preview failed. Please download the file instead.</div>`;
-        //     }
-        // }
     }, 200);
 });
 
@@ -383,53 +243,120 @@ document.addEventListener("mouseover", function (ev) {
     }
 
 });
+//
+// // Add 'async' to your function
+// async function splitDocxPages(container) {
+//     const PAGE_HEIGHT = 939;
+//     const article = container.querySelector("article");
+//     if (!article) return;
+//
+//     // Ensure all images are loaded before measuring
+//     const images = article.querySelectorAll('img');
+//     await Promise.all([...images].map(img => {
+//         if (img.complete) return Promise.resolve();
+//         return new Promise(resolve => {
+//             img.onload = resolve;
+//             img.onerror = resolve;
+//         });
+//     }));
+//
+//     const nodes = [...article.children];
+//     let page = container.querySelector("section.docx");
+//     let currentHeight = 0;
+//     const pages = [page];
+//
+//     nodes.forEach(node => {
+//         const nodeHeight = node.getBoundingClientRect().height; // Use more precise measurement
+//
+//         if (currentHeight + nodeHeight > PAGE_HEIGHT && currentHeight > 0) {
+//             const newPage = document.createElement("section");
+//             newPage.className = "docx";
+//             const newArticle = document.createElement("article");
+//             newPage.appendChild(newArticle);
+//             container.appendChild(newPage);
+//
+//             page = newPage;
+//             pages.push(page);
+//             currentHeight = 0;
+//         }
+//
+//         page.querySelector("article").appendChild(node);
+//         currentHeight += nodeHeight;
+//     });
+//
+//     // Now totalPages will be correct (e.g., 2)
+//     pages.forEach((p, index) => {
+//         // Remove existing footers if any to prevent duplicates
+//         const existing = p.querySelector(".docx-page-number");
+//         if (existing) existing.remove();
+//
+//         const footer = document.createElement("div");
+//         footer.className = "docx-page-number";
+//         footer.textContent = `Page ${index + 1} of ${pages.length}`;
+//         p.appendChild(footer);  
+//     });
+// }
 
-// Add 'async' to your function
-async function splitDocxPages(container) {
-    const PAGE_HEIGHT = 939;
-    const article = container.querySelector("article");
-    if (!article) return;
 
-    // Ensure all images are loaded before measuring
-    const images = article.querySelectorAll('img');
-    await Promise.all([...images].map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-    }));
+function splitIntoPdfPages() {
 
-    const nodes = [...article.children];
-    let page = container.querySelector("section.docx");
+    const content = document.querySelector(".doc-content");
+    const viewer = document.querySelector(".pdf-viewer");
+
+    if (!content || !viewer) return;
+
+    const PAGE_HEIGHT = 1122; // A4 height
+    const nodes = [...content.children];
+
+    viewer.innerHTML = "";
+
+    let page = createPage();
+    viewer.appendChild(page);
+
     let currentHeight = 0;
-    const pages = [page];
 
     nodes.forEach(node => {
-        const nodeHeight = node.getBoundingClientRect().height; // Use more precise measurement
 
-        if (currentHeight + nodeHeight > PAGE_HEIGHT && currentHeight > 0) {
-            const newPage = document.createElement("section");
-            newPage.className = "docx";
-            const newArticle = document.createElement("article");
-            newPage.appendChild(newArticle);
-            container.appendChild(newPage);
+        page.appendChild(node);
 
-            page = newPage;
-            pages.push(page);
-            currentHeight = 0;
+        const height = node.getBoundingClientRect().height;
+
+        if (currentHeight + height > PAGE_HEIGHT && currentHeight > 0) {
+
+            page.removeChild(node);
+
+            page = createPage();
+            viewer.appendChild(page);
+
+            page.appendChild(node);
+            currentHeight = height;
+
+        } else {
+            currentHeight += height;
         }
-
-        page.querySelector("article").appendChild(node);
-        currentHeight += nodeHeight;
     });
 
-    // Now totalPages will be correct (e.g., 2)
-    pages.forEach((p, index) => {
-        // Remove existing footers if any to prevent duplicates
-        const existing = p.querySelector(".docx-page-number");
-        if (existing) existing.remove();
+    addPageNumbers();
+}
 
+function createPage() {
+    const page = document.createElement("div");
+    page.className = "pdf-page";
+
+    const inner = document.createElement("div");
+    inner.className = "pdf-page-inner";
+
+    page.appendChild(inner);
+    return page;
+}
+
+function addPageNumbers() {
+    const pages = document.querySelectorAll(".pdf-page");
+
+    pages.forEach((page, index) => {
         const footer = document.createElement("div");
-        footer.className = "docx-page-number";
-        footer.textContent = `Page ${index + 1} of ${pages.length}`;
-        p.appendChild(footer);
+        footer.className = "pdf-footer";
+        footer.innerText = `Page ${index + 1} of ${pages.length}`;
+        page.appendChild(footer);
     });
 }

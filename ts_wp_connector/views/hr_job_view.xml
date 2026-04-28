@@ -1,0 +1,59 @@
+<odoo>
+    <record id="view_job_form_wp" model="ir.ui.view">
+        <field name="name">hr.job.form.wp</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[contains(@class, 'oe_title')]" position="after">
+                <field name="wp_post_id"/>
+            </xpath>
+
+            <xpath expr="//form/sheet" position="before">
+                <header>
+                    <button name="action_publish_to_wp"
+                            type="object"
+                            string="Publish Job"
+                            class="btn-primary"/>
+                </header>
+            </xpath>
+
+            <xpath expr="//page[@name='job_description_page']" position="after">
+                <page name="Tasks and Responsibilities">
+                    <field name="tasks_responsibilities_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                        </tree>
+                        <form>
+                            <field name="name"/>
+                        </form>
+                    </field>
+                </page>
+                <page name="Skills and Qualifications">
+                    <field name="skills_qualifications_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                        </tree>
+                        <form>
+                            <field name="name"/>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//group[@name='recruitment2']" position="inside">
+                <field name="work_location_id" widget="many2many_tags"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_job_tree_wp" model="ir.ui.view">
+        <field name="name">hr.job.tree.wp</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr.view_hr_job_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="wp_post_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

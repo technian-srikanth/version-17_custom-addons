@@ -1,5 +1,4 @@
-from odoo import models, fields, api
-from datetime import datetime, time
+from odoo import models, fields
 
 
 class ResourceCalendarLeaves(models.Model):
@@ -10,6 +9,19 @@ class ResourceCalendarLeaves(models.Model):
         default=9.0,
         help="Number of hours to log in timesheets for this holiday"
     )
+
+    def _timesheet_prepare_line_values(
+            self, index, employee_id, work_hours_data, day_date, work_hours_count
+    ):
+        self.ensure_one()
+
+        values = super()._timesheet_prepare_line_values(
+            index, employee_id, work_hours_data, day_date, work_hours_count
+        )
+
+        values['unit_amount'] = self.flexible_hours
+
+        return values
 
     def write(self, vals):
         res = super(ResourceCalendarLeaves, self).write(vals)
@@ -38,30 +50,3 @@ class ResourceCalendarLeaves(models.Model):
                 for line in lines:
                     line.unit_amount = record.flexible_hours
         return res
-
-
-class AccountAnalyticLine(models.Model):
-    _inherit = "account.analytic.line"
-
-    @api.model_create_multi
-    def create(self, vals_list):
-
-        lines = super().create(vals_list)
-
-        for line in lines:
-
-            if not line.employee_id or not line.date:
-                continue
-
-            date_start = fields.Datetime.to_datetime(line.date)
-            date_end = datetime.combine(line.date, time.max)
-
-            holiday = self.env["resource.calendar.leaves"].search([
-                ('date_from', '<=', date_end),
-                ('date_to', '>=', date_start),
-            ], limit=1)
-
-            if holiday:
-                line.unit_amount = holiday.flexible_hours
-
-        return lines

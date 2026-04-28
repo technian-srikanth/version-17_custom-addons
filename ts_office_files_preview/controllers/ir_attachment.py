@@ -5,11 +5,6 @@ import csv
 import io
 import json
 import openpyxl
-import tempfile
-import subprocess
-import os
-import aspose.slides as slides
-from pdfitdown.pdfconversion import Converter
 class AttachmentPreviewController(http.Controller):
 
     @http.route('/csv/preview/<int:attachment_id>', auth='user', type='http')
@@ -89,173 +84,23 @@ class AttachmentPreviewController(http.Controller):
         except Exception as e:
             return self._json_response({"error": str(e)})
 
-    # @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
-    # def ppt_preview(self, attachment_id):
-    #
-    #     attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-    #
-    #
-    #     print(attachment)
-    #
-    #     if not attachment.exists() or not attachment.datas:
-    #         return request.not_found()
-    #
-    #     try:
-    #
-    #         file_data = base64.b64decode(attachment.datas)
-    #
-    #         with tempfile.TemporaryDirectory() as tmpdir:
-    #
-    #             ppt_path = os.path.join(tmpdir, attachment.name)
-    #             pdf_path = ppt_path.replace(".pptx", ".pdf")
-    #
-    #             # Save PPT file
-    #             with open(ppt_path, "wb") as f:
-    #                 f.write(file_data)
-    #
-    #             # Convert PPT → PDF
-    #             subprocess.run([
-    #                 r"C:\Program Files\LibreOffice\program\soffice.exe",
-    #                 "--headless",
-    #                 "--convert-to", "pdf",
-    #                 ppt_path,
-    #                 "--outdir", tmpdir
-    #             ], check=True)
-    #
-    #             # Return PDF
-    #             with open(pdf_path, "rb") as pdf:
-    #                 content = pdf.read()
-    #
-    #             return request.make_response(
-    #                 content,
-    #                 headers=[
-    #                     ("Content-Type", "application/pdf"),
-    #                     ("Content-Length", len(content))
-    #                 ]
-    #             )
-    #
-    #     except Exception as e:
-    #         return request.make_response(
-    #             str(e),
-    #             headers=[("Content-Type", "text/plain")]
-    #         )
-
-    # @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
-    # def ppt_preview(self, attachment_id):
-    #     attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-    #
-    #     if not attachment.exists() or not attachment.datas:
-    #         return request.not_found()
-    #
-    #     try:
-    #         # Decode attachment data
-    #         file_data = base64.b64decode(attachment.datas)
-    #         load_stream = io.BytesIO(file_data)
-    #
-    #         # Use Aspose.Slides to render high-fidelity HTML
-    #         with slides.Presentation(load_stream) as pres:
-    #             html_stream = io.BytesIO()
-    #
-    #             # Setup Responsive HTML options for "Exact Styling"
-    #             options = slides.export.HtmlOptions()
-    #             options.html_formatter = slides.export.HtmlFormatter.create_custom_formatter(
-    #                 slides.export.ResponsiveHtmlController()
-    #             )
-    #
-    #             # Save to the byte stream
-    #             pres.save(html_stream, slides.export.SaveFormat.HTML, options)
-    #             content = html_stream.getvalue()
-    #
-    #             return request.make_response(
-    #                 content,
-    #                 headers=[
-    #                     ("Content-Type", "text/html"),
-    #                     ("Content-Length", len(content))
-    #                 ]
-    #             )
-    #
-    #     except Exception as e:
-    #         return request.make_response(
-    #             f"High-fidelity conversion failed: {str(e)}",
-    #             headers=[("Content-Type", "text/plain")]
-    #         )
-
-
-
-    # @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
-    # def ppt_preview(self, attachment_id):
-    #     attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-    #     if not attachment.exists() or not attachment.datas:
-    #         return request.not_found()
-    #
-    #     file_data = base64.b64decode(attachment.datas)
-    #
-    #     # Create temp files for conversion
-    #     with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as tmp_ppt:
-    #         tmp_ppt.write(file_data)
-    #         ppt_path = tmp_ppt.name
-    #         pdf_path = ppt_path.replace(".pptx", ".pdf")
-    #
-    #     try:
-    #         # Use pdfitdown for faster conversion than LibreOffice
-    #         conv = Converter()
-    #         conv.convert(file_path=ppt_path, output_path=pdf_path)
-    #
-    #         with open(pdf_path, "rb") as f:
-    #             content = f.read()
-    #
-    #         return request.make_response(content, headers=[
-    #             ("Content-Type", "application/pdf"),
-    #             ("Content-Length", len(content))
-    #         ])
-    #     finally:
-    #         # Cleanup temp files
-    #         for path in [ppt_path, pdf_path]:
-    #             if os.path.exists(path): os.remove(path)
-
-    @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
-    def ppt_preview(self, attachment_id):
-        attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-
-        cached_name = f"cache_{attachment.id}.pdf"
-        preview_cache = request.env['ir.attachment'].sudo().search([
-            ('name', '=', cached_name),
-            ('res_model', '=', 'ir.attachment'),
-            ('res_id', '=', attachment.id)
-        ], limit=1)
-
-        if preview_cache:
-            content = base64.b64decode(preview_cache.datas)
-            return request.make_response(content, headers=[("Content-Type", "application/pdf")])
-
-        # 2. If no cache, use LibreOffice for perfect styling
-        file_data = base64.b64decode(attachment.datas)
-        with tempfile.TemporaryDirectory() as tmpdir:
-            ppt_path = os.path.join(tmpdir, "temp.pptx")
-            with open(ppt_path, "wb") as f:
-                f.write(file_data)
-
-            subprocess.run([
-                r"C:\Program Files\LibreOffice\program\soffice.exe",
-                "--headless", "--convert-to", "pdf", ppt_path, "--outdir", tmpdir
-            ], check=True)
-
-            pdf_path = os.path.join(tmpdir, "temp.pdf")
-            with open(pdf_path, "rb") as f:
-                content = f.read()
-
-            request.env['ir.attachment'].sudo().create({
-                'name': cached_name,
-                'datas': base64.b64encode(content),
-                'res_model': 'ir.attachment',
-                'res_id': attachment.id,
-                'mimetype': 'application/pdf',
-            })
-
-        return request.make_response(content, headers=[("Content-Type", "application/pdf")])
-
     def _json_response(self, data):
         return request.make_response(
             json.dumps(data),
             headers=[("Content-Type", "application/json")]
         )
+
+#
+# class PublicAttachment(http.Controller):
+#
+#     @http.route('/public/doc/<int:attachment_id>', type='http', auth='public')
+#     def get_doc(self, attachment_id):
+#         attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
+#
+#         return request.make_response(
+#             attachment.datas,
+#             headers=[
+#                 ('Content-Type', attachment.mimetype),
+#                 ('Content-Disposition', f'inline; filename={attachment.name}')
+#             ]
+#         )

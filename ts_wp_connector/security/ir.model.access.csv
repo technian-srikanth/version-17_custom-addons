@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_job_task_responsibilities,access_job_task_responsibilities,model_job_task_responsibilities,,1,1,1,1
+access_job_skills_qualifications,access_job_skills_qualifications,model_job_skills_qualifications,,1,1,1,1
