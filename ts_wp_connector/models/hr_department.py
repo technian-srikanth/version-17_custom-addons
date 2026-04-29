@@ -15,7 +15,9 @@ class HrDepartment(models.Model):
         username = (config.get_param('wp_username') or "").strip()
         password = (config.get_param('wp_password') or "").strip()
 
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
+        # base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
+        base_url =(config.get_param('wp_department_api') or "").strip()
+
         for department in self:
 
             if department.name:
@@ -57,7 +59,9 @@ class HrDepartment(models.Model):
         config = self.env['ir.config_parameter'].sudo()
         username = config.get_param('wp_username', '').strip()
         password = config.get_param('wp_password', '').strip()
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
+        # base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-type"
+        base_url =(config.get_param('wp_department_api') or "").strip()
+
 
         for department in self:
             if department.wp_post_id:

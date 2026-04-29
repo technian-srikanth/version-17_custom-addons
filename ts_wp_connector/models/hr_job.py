@@ -20,7 +20,9 @@ class HrJob(models.Model):
         config = self.env['ir.config_parameter'].sudo()
         username = (config.get_param('wp_username') or "").strip()
         password = (config.get_param('wp_password') or "").strip()
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
+        # base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
+        base_url = (config.get_param('wp_job_api') or "").strip()
+
         for job in self:
 
             if job.description and job.name:
@@ -109,7 +111,9 @@ class HrJob(models.Model):
         config = self.env['ir.config_parameter'].sudo()
         username = config.get_param('wp_username', '').strip()
         password = config.get_param('wp_password', '').strip()
-        base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
+        # base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job"
+        base_url = (config.get_param('wp_job_api') or "").strip()
+
 
         _logger.info("Starting unlink process for %s records", len(self))
 

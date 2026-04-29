@@ -1,8 +1,8 @@
 {
-    "name": "WP Connector",
+    "name": "Nians WP Connector",
     "version": "17.0",
     "author": "Nians",
-    "depends": ["base", "hr", "website", "hr_recruitment", "payment", "website_blog", ],
+    "depends": ["base", "hr","hr_recruitment","website_hr_recruitment", ],
     "data":
         [
             'security/ir.model.access.csv',
