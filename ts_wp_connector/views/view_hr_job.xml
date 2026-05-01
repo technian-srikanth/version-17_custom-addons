@@ -5,7 +5,7 @@
         <field name="inherit_id" ref="hr.view_hr_job_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[contains(@class, 'oe_title')]" position="after">
-                <field name="wp_post_id" readonly="1"/>
+                <field name="website_job_id" readonly="1"/>
             </xpath>
 
             <xpath expr="//form/sheet" position="before">
@@ -13,33 +13,8 @@
                     <button name="action_publish_to_wp"
                             type="object"
                             string="Publish Job"
-                            class="btn-primary" invisible="wp_post_id"/>
+                            class="btn-primary" invisible="website_job_id"/>
                 </header>
-            </xpath>
-
-            <xpath expr="//page[@name='job_description_page']" position="after">
-                <page name="Tasks and Responsibilities">
-                    <field name="tasks_responsibilities_ids">
-                        <tree editable="bottom">
-                            <field name="sequence" widget="handle"/>
-                            <field name="name"/>
-                        </tree>
-                        <form>
-                            <field name="name"/>
-                        </form>
-                    </field>
-                </page>
-                <page name="Skills and Qualifications">
-                    <field name="skills_qualifications_ids">
-                        <tree editable="bottom">
-                            <field name="sequence" widget="handle"/>
-                            <field name="name"/>
-                        </tree>
-                        <form>
-                            <field name="name"/>
-                        </form>
-                    </field>
-                </page>
             </xpath>
 
             <xpath expr="//group[@name='recruitment2']" position="inside">
@@ -54,7 +29,7 @@
         <field name="inherit_id" ref="hr.view_hr_job_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="wp_post_id" readonly="1"/>
+                <field name="website_job_id" readonly="1"/>
             </xpath>
         </field>
     </record>

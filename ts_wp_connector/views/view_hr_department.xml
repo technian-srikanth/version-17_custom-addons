@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="hr.view_department_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="wp_post_id" readonly="1"/>
+                <field name="wp_department_id" readonly="1"/>
             </xpath>
         </field>
     </record>
@@ -17,14 +17,14 @@
         <field name="inherit_id" ref="hr.view_department_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="wp_post_id" readonly="1"/>
+                <field name="wp_department_id" readonly="1"/>
             </xpath>
             <xpath expr="//form/sheet" position="before">
                 <header>
                     <button name="action_publish_to_wp"
                             type="object"
                             string="Update to wordpress"
-                            class="btn-primary" invisible="wp_post_id"/>
+                            class="btn-primary" invisible="wp_department_id"/>
                 </header>
             </xpath>
         </field>

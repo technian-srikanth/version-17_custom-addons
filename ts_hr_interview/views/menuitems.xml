@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="menu_hr_interview"
+              name="Interview"
+              parent="hr_recruitment.menu_crm_case_categ0_act_job"
+              action="action_hr_interview"/>
+</odoo>

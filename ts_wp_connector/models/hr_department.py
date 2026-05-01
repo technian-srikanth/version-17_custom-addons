@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 class HrDepartment(models.Model):
     _inherit = 'hr.department'
 
-    wp_post_id = fields.Char(string="WordPress Department ID", tracking=True)
+    wp_department_id = fields.Char(string="WordPress Department ID", tracking=True)
 
     def _sync_department_to_wp(self):
         config = self.env['ir.config_parameter'].sudo()
@@ -27,10 +27,10 @@ class HrDepartment(models.Model):
                 }
 
                 # UPDATE
-                if department.wp_post_id:
-                    print(department.wp_post_id)
+                if department.wp_department_id:
+                    print(department.wp_department_id)
                     response = requests.put(
-                        f"{base_url}/{int(department.wp_post_id)}",
+                        f"{base_url}/{int(department.wp_department_id)}",
                         json=data,
                         auth=(username, password)
                     )
@@ -42,7 +42,7 @@ class HrDepartment(models.Model):
                     )
 
                     if response.status_code in (200, 201):
-                        department.wp_post_id = response.json().get("id")
+                        department.wp_department_id = response.json().get("id")
 
                 if response.status_code not in (200, 201):
                     raise Exception(f"WP Error: {response.text}")
@@ -64,10 +64,10 @@ class HrDepartment(models.Model):
 
 
         for department in self:
-            if department.wp_post_id:
+            if department.wp_department_id:
                 try:
                     response = requests.delete(
-                        f"{base_url}/{int(department.wp_post_id)}",
+                        f"{base_url}/{int(department.wp_department_id)}",
                         auth=(username, password),
                         params={'force': True},
                         timeout=60
@@ -75,9 +75,9 @@ class HrDepartment(models.Model):
                     if response.status_code not in [200, 201]:
                         _logger.error(f"WP Delete Failed ({response.status_code}): {response.text}")
                     else:
-                        _logger.info(f"Successfully deleted WP ID {department.wp_post_id}")
+                        _logger.info(f"Successfully deleted WP ID {department.wp_department_id}")
 
                 except Exception as e:
-                    _logger.error(f"Network error while deleting WP ID {department.wp_post_id}: {e}")
+                    _logger.error(f"Network error while deleting WP ID {department.wp_department_id}: {e}")
 
         return super(HrDepartment, self).unlink()

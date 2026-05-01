@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 class HRWorkLocation(models.Model):
     _inherit = "hr.work.location"
 
-    wp_post_id = fields.Char(string="WordPress Job location ID", tracking=True)
+    wp_location_id = fields.Char(string="WordPress Job location ID", tracking=True)
 
     def _sync_location_to_wp(self):
         config = self.env['ir.config_parameter'].sudo()
@@ -26,10 +26,10 @@ class HRWorkLocation(models.Model):
                 }
 
                 # UPDATE
-                if location.wp_post_id:
-                    print(location.wp_post_id)
+                if location.wp_location_id:
+                    print(location.wp_location_id)
                     response = requests.put(
-                        f"{base_url}/{int(location.wp_post_id)}",
+                        f"{base_url}/{int(location.wp_location_id)}",
                         json=data,
                         auth=(username, password)
                     )
@@ -41,7 +41,7 @@ class HRWorkLocation(models.Model):
                     )
 
                     if response.status_code in (200, 201):
-                        location.wp_post_id = response.json().get("id")
+                        location.wp_location_id = response.json().get("id")
 
                 if response.status_code not in (200, 201):
                     raise Exception(f"WP Error: {response.text}")
@@ -62,10 +62,10 @@ class HRWorkLocation(models.Model):
         # base_url = "https://staging-9a67-technianscom.wpcomstaging.com/wp-json/wp/v2/job-location"
         base_url = (config.get_param('wp_worklocation_api') or "").strip()
         for loc in self:
-            if loc.wp_post_id:
+            if loc.wp_location_id:
                 try:
                     response = requests.delete(
-                        f"{base_url}/{int(loc.wp_post_id)}",
+                        f"{base_url}/{int(loc.wp_location_id)}",
                         auth=(username, password),
                         params={'force': True},
                         timeout=30
@@ -73,9 +73,9 @@ class HRWorkLocation(models.Model):
                     if response.status_code != 200:
                         _logger.error(f"WP Delete Failed ({response.status_code}): {response.text}")
                     else:
-                        _logger.info(f"Successfully deleted WP ID {loc.wp_post_id}")
+                        _logger.info(f"Successfully deleted WP ID {loc.wp_location_id}")
 
                 except Exception as e:
-                    _logger.error(f"Request error for WP ID {loc.wp_post_id}: {e}")
+                    _logger.error(f"Request error for WP ID {loc.wp_location_id}: {e}")
 
         return super(HRWorkLocation, self).unlink()

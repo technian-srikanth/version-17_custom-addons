@@ -9,14 +9,21 @@ _logger = logging.getLogger(__name__)
 class HrJob(models.Model):
     _inherit = "hr.job"
 
-    wp_post_id = fields.Char(string="WordPress Job ID", tracking=True)
+    #wordpress job publish id
+    website_job_id = fields.Char(string="WordPress Job ID", tracking=True)
+
+    #multiple job location for one job position
     work_location_id = fields.Many2many('hr.work.location', string='Work Location')
-    tasks_responsibilities_ids = fields.One2many("job.task.responsibilities", string="Tasks and Responsibilities",
+
+    #tasks and responsibilities
+    role_line_ids = fields.One2many("hr.job.line", string="Tasks and Responsibilities",
                                                  inverse_name="job_id")
-    skills_qualifications_ids = fields.One2many("job.skills.qualifications", string="Skills and Qualifications",
+    #skills and qualifications
+    job_requirement_ids = fields.One2many("hr.job.requirement.line", string="Skills and Qualifications",
                                                 inverse_name="job_id")
 
     def _sync_jobs_to_wp(self):
+
         config = self.env['ir.config_parameter'].sudo()
         username = (config.get_param('wp_username') or "").strip()
         password = (config.get_param('wp_password') or "").strip()
@@ -52,16 +59,16 @@ class HrJob(models.Model):
 
                 acf_data = {}
 
-                if job.tasks_responsibilities_ids:
+                if job.role_line_ids:
                     acf_data["job_tasks_and_responsibilities"] = [
-                        {"task_and_responsibility": x.name}
-                        for x in job.tasks_responsibilities_ids
+                        {"task_and_responsibility": x.roles_id.name}
+                        for x in job.role_line_ids
                     ]
 
-                if job.skills_qualifications_ids:
+                if job.job_requirement_ids:
                     acf_data["job_skills_and_qualifications"] = [
-                        {"skill_and_qualification": x.name}
-                        for x in job.skills_qualifications_ids
+                        {"skill_and_qualification": x.requirement_id.name}
+                        for x in job.job_requirement_ids
                     ]
                 if job.no_of_recruitment:
                     acf_data["job_openings"] = str(job.no_of_recruitment)
@@ -69,20 +76,20 @@ class HrJob(models.Model):
                 if acf_data:
                     data["acf"] = acf_data
 
-                if job.department_id and job.department_id.wp_post_id:
-                    data["job-type"] = [int(job.department_id.wp_post_id)]
+                if job.department_id and job.department_id.wp_department_id:
+                    data["job-type"] = [int(job.department_id.wp_department_id)]
 
                 if job.work_location_id:
                     data["job-location"] = [
-                        int(loc.wp_post_id)
+                        int(loc.wp_location_id)
                         for loc in job.work_location_id
-                        if loc.wp_post_id
+                        if loc.wp_location_id
                     ]
 
                 # UPDATE
-                if job.wp_post_id:
+                if job.website_job_id:
                     response = requests.put(
-                        f"{base_url}/{int(job.wp_post_id)}",
+                        f"{base_url}/{int(job.website_job_id)}",
                         json=data,
                         auth=(username, password)
                     )
@@ -94,7 +101,7 @@ class HrJob(models.Model):
                     )
 
                     if response.status_code in (200, 201):
-                        job.wp_post_id = response.json().get("id")
+                        job.website_job_id = response.json().get("id")
 
                 if response.status_code not in (200, 201):
                     raise Exception(f"WP Error: {response.text}")
@@ -118,8 +125,8 @@ class HrJob(models.Model):
         _logger.info("Starting unlink process for %s records", len(self))
 
         for job in self:
-            if job.wp_post_id:
-                wp_id = int(job.wp_post_id)
+            if job.website_job_id:
+                wp_id = int(job.website_job_id)
                 _logger.info("Attempting to delete WP Post ID: %s", wp_id)
 
                 try:
@@ -141,24 +148,7 @@ class HrJob(models.Model):
                 except Exception as e:
                     _logger.error("Unexpected error for WP ID %s: %s", wp_id, e)
             else:
-                _logger.info("Odoo record %s has no wp_post_id, skipping WP deletion", job.id)
+                _logger.info("Odoo record %s has no website_job_id, skipping WP deletion", job.id)
 
         return super(HrJob, self).unlink()
 
-
-class HrJobResponsibilities(models.Model):
-    _name = "job.task.responsibilities"
-    _order = 'sequence'
-
-    sequence = fields.Integer("Sequence", default=10)
-    name = fields.Text(string="Description")
-    job_id = fields.Many2one("hr.job", string="Job")
-
-
-class HRSkillsQualifications(models.Model):
-    _name = "job.skills.qualifications"
-    _order = 'sequence'
-
-    sequence = fields.Integer("Sequence", default=10)
-    name = fields.Text(string="Description")
-    job_id = fields.Many2one("hr.job", string="Job")

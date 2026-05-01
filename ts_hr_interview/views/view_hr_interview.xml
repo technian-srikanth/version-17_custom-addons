@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_hr_interview_form" model="ir.ui.view">
+        <field name="name">hr.interview.form</field>
+        <field name="model">hr.interview</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="stage_id" widget="statusbar"
+                           statusbar_visible="new,today,this_week,next_week,up_coming"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="view_application" class="oe_stat_button" icon="fa-pencil" type="object"
+                                string="Application" invisible="not application_id">
+                        </button>
+                    </div>
+                    <div class="row justify-content-between position-relative w-100 m-0 mb-2">
+                        <div class="oe_title mw-75 ps-0 pe-2">
+                            <h1 class="d-flex flex-row align-items-center">
+                                <field name="name" placeholder="Name"
+                                       style="font-size: min(4vw, 2.6rem);" readonly="application_id"/>
+                            </h1>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="application_id" invisible="1"/>
+                        <field name="start_date"/>
+                    </group>
+                    <group>
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_interview_tree" model="ir.ui.view">
+        <field name="name">hr.interview.tree</field>
+        <field name="model">hr.interview</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="stage_id"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="view_hr_interview_quick_create_form" model="ir.ui.view">
+        <field name="name">hr.interview.quick.create.form</field>
+        <field name="model">hr.interview</field>
+        <field name="arch" type="xml">
+            <form string="Quick Create">
+                <group>
+                    <field name="name" placeholder="Name"/>
+                    <field name="start_date" placeholder="Select interview date"/>
+                    <field name="application_id" invisible="1"/>
+                    <field name="stage_id" invisible="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="view_hr_interview_kanban" model="ir.ui.view">
+        <field name="name">hr.interview.kanban</field>
+        <field name="model">hr.interview</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id"
+                    on_create="quick_create"
+                    quick_create_view="your_module.view_hr_interview_quick_create_form">
+
+                <field name="name"/>
+                <field name="stage_id"/>
+                <field name="start_date"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click p-2">
+                            <div class="mb-2">
+                                <strong class="fs-4">
+                                    <span t-esc="record.name.value"/>
+                                </strong>
+                            </div>
+                            <div class="mb-2">
+                                <strong>
+                                    <span t-esc="record.start_date.value"/>
+                                </strong>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_hr_interview" model="ir.actions.act_window">
+        <field name="name">Interview</field>
+        <field name="res_model">hr.interview</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_hr_interview_kanban"/>
+    </record>
+
+
+</odoo>

@@ -11,7 +11,7 @@
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
-<!--            <field name="active">False</field>-->
+            <field name="active">True</field>
         </record>
 
 
@@ -25,7 +25,7 @@
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
-<!--            <field name="active">False</field>-->
+            <field name="active">True</field>
         </record>
 
 
@@ -39,7 +39,7 @@
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
-<!--            <field name="active">False</field>-->
+            <field name="active">True</field>
         </record>
     </data>
 </odoo>
