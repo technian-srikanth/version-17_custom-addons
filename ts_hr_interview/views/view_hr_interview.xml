@@ -15,11 +15,10 @@
                                 string="Application" invisible="not application_id">
                         </button>
                     </div>
-                    <div class="row justify-content-between position-relative w-100 m-0 mb-2">
-                        <div class="oe_title mw-75 ps-0 pe-2">
+                    <div class="row justify-content-between position-relative w-100 m-0">
+                        <div class="oe_title ps-0 pe-2">
                             <h1 class="d-flex flex-row align-items-center">
-                                <field name="name" placeholder="Name"
-                                       style="font-size: min(4vw, 2.6rem);" readonly="application_id"/>
+                                <field name="name" placeholder="Name" style="font-size: min(4vw, 2.6rem);" readonly="application_id"/>
                             </h1>
                         </div>
                     </div>
@@ -56,7 +55,7 @@
                 <group>
                     <field name="name" placeholder="Name"/>
                     <field name="start_date" placeholder="Select interview date"/>
-                    <field name="application_id" invisible="1"/>
+                    <field name="application_id"/>
                     <field name="stage_id" invisible="1"/>
                 </group>
             </form>
@@ -70,10 +69,10 @@
         <field name="arch" type="xml">
             <kanban default_group_by="stage_id"
                     on_create="quick_create"
-                    quick_create_view="your_module.view_hr_interview_quick_create_form">
+                    quick_create_view="ts_hr_interview.view_hr_interview_quick_create_form">
 
                 <field name="name"/>
-                <field name="stage_id"/>
+                <field name="stage_id" invisible="1"/>
                 <field name="start_date"/>
 
                 <templates>

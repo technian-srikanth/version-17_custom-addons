@@ -1,0 +1,155 @@
+<templates xml:space="preserve">
+
+<t t-name="om_dynamic_reports.DynamicReports">
+    <div class="o_dynamic_report panel-container-vertical">
+
+        <div class="dynamic_control_header panel-top">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Dynamic Reports</h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary"
+                            t-on-click="_printPdf">
+                        PDF
+                    </button>
+
+                    <button class="btn btn-primary"
+                            t-on-click="_printXlsx">
+                        Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mb-2">
+
+                 <button class="btn btn-primary"
+                         t-on-click="fetchReport">
+                    Apply
+                </button>
+                <select name="account_report_id"
+                        class="form-select"
+                        t-on-change="onInputChange">
+                    <option value="">Select Report</option>
+                    <t t-foreach="state.report_type" t-as="r" t-key="r.id">
+                        <option t-att-value="r.id">
+                            <t t-esc="r.name"/>
+                        </option>
+                    </t>
+                </select>
+
+                <input type="date"
+                       name="date_from"
+                       class="form-control"
+                       t-on-change="onInputChange"/>
+
+                <input type="date"
+                       name="date_to"
+                       class="form-control"
+                       t-on-change="onInputChange"/>
+
+                <select name="target_move"
+                        class="form-select"
+                        t-on-change="onInputChange">
+
+                    <option value="posted"
+                            t-att-selected="state.filters.target_move === 'posted'">
+                        All Posted Entries
+                    </option>
+
+                    <option value="all"
+                            t-att-selected="state.filters.target_move === 'all'">
+                        All Entries
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <select multiple="multiple"
+                        name="journal_ids"
+                        class="form-select"
+                        t-on-change="onInputChange">
+                    <t t-foreach="state.journal_ids" t-as="j" t-key="j.id">
+                        <option t-att-value="j.id">
+                            <t t-esc="j.name"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
+        </div>
+
+        <div class="splitter-horizontal"/>
+
+        <!-- BODY -->
+        <div class="dynamic_report_body panel-bottom">
+
+            <t t-if="state.loading">
+                <p>Loading...</p>
+            </t>
+
+            <table class="table table-sm mt-3"
+                   t-if="state.report_lines.length">
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
+                        <th class="text-end">Balance</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <t t-foreach="getDisplayLines()"
+                       t-as="line"
+                       t-key="line._type === 'parent'
+                              ? line._key
+                              : line._parentKey + '_' + line._childIndex">
+
+                        <!-- PARENT -->
+                        <tr t-if="line._type === 'parent'">
+                            <td t-att-style="'padding-left:' + ((line.level || 0) * 15) + 'px'">
+                                    <span
+                                            t-on-click.stop="() => toggle(line, line._index)"
+                                            style="cursor:pointer; margin-right:6px;">
+                                        <t t-esc="state.expandedLines[line._key] ? '▾' : '▸'"/>
+                                    </span>
+                                <t t-esc="line.name"/>
+                            </td>
+
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.debit)"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.credit)"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.balance)"/>
+                            </td>
+                        </tr>
+
+                        <!-- CHILD -->
+                        <tr t-if="line._type === 'child'">
+                            <td t-att-style="'padding-left:' + (((line.level || 1) * 15) + 10) + 'px'">
+                            <t t-esc="line.name or line.displayed_name"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.debit)"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.credit)"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="formatAmount(line.progress)"/>
+                            </td>
+                        </tr>
+
+                    </t>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</t>
+
+</templates>

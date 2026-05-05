@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="om_account_reports_pdf">
+            <t t-call="web.html_container">
+
+                <!-- REQUIRED FOR LAYOUT -->
+                <t t-foreach="docs" t-as="doc">
+
+                    <t t-call="web.external_layout">
+
+                        <t t-set="company" t-value="doc"/>
+
+                        <!-- YOUR WORKING DATA -->
+                        <t t-set="d" t-value="data"/>
+                        <t t-set="currency" t-value="d.get('currency') or {}"/>
+
+                        <div class="page">
+
+                            <h3 style="text-align:center;">Dynamic Report</h3>
+
+                            <p>LINES:
+                                <t t-esc="len(d.get('lines', []))"/>
+                            </p>
+
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th class="text-end">Balance</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <t t-foreach="d.get('lines', [])" t-as="line">
+
+                                        <t t-set="lvl" t-value="line.get('level') or 0"/>
+
+                                        <tr>
+                                            <td>
+                                                <span t-att-style="'padding-left:%spx' % (int(lvl) * 20)">
+                                                    <t t-esc="line.get('name')"/>
+                                                </span>
+                                            </td>
+
+                                            <td class="text-end">
+                                                <t t-if="currency.get('position') == 'before'">
+                                                    <t t-esc="currency.get('symbol')"/>
+                                                </t>
+
+                                                <t t-esc="line.get('balance') or 0"/>
+
+                                                <t t-if="currency.get('position') == 'after'">
+                                                    <t t-esc="currency.get('symbol')"/>
+                                                </t>
+                                            </td>
+                                        </tr>
+
+                                    </t>
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                    </t>
+
+                </t>
+
+            </t>
+        </template>
+    </data>
+</odoo>
