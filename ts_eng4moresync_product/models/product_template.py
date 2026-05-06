@@ -23,17 +23,23 @@ class ProductTemplate(models.Model):
                     wp_id = item.get("id")
                     name = item.get("name")
                     title = item.get("title")
+                    featured_image = item.get("featured_image") or {}
+                    file_url = featured_image.get("file_url")
+
                     if not wp_id:
                         continue
                     vals = {
                         'name': name,
                         'wp_post_id': wp_id,
+                        'description': title if title else None,
+                        'description_sale': file_url if file_url else None,
                     }
                     product = existing_products.get(wp_id)
                     if product:
                         product.write({
                             'name': name,
-                            'description': title,
+                            'description': title if title else None,
+                            'description_sale': file_url if file_url else None,
                         })
                     else:
                         new_product = self.create(vals)
