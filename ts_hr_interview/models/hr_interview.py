@@ -12,6 +12,11 @@ class HrInterview(models.Model):
     application_id = fields.Many2one('hr.applicant', "Application")
     start_date = fields.Datetime(string="Start Date")
 
+    email_from = fields.Char(
+        related="application_id.email_from",
+        store=True
+    )
+
     stage_id = fields.Selection(
         [
             ('new', "New"),
@@ -31,11 +36,6 @@ class HrInterview(models.Model):
         for rec in self:
             if rec.application_id:
                 rec.name = rec.application_id.partner_name or rec.application_id.name
-
-    # @api.depends('start_date')
-    # def _compute_stage(self):
-    #     for rec in self:
-    #         rec.stage_id = rec._get_stage()
 
     def _get_stage(self):
         self.ensure_one()
@@ -62,10 +62,6 @@ class HrInterview(models.Model):
         elif start_date > end_of_next_week:
             return 'up_coming'
 
-    # if vals.get('application_id') and not vals.get('name'):
-    #     applicant = self.env['hr.applicant'].browse(vals['application_id'])
-    #     vals['name'] = applicant.partner_name or applicant.name
-
     @api.model
     def create(self, vals):
 
@@ -76,11 +72,6 @@ class HrInterview(models.Model):
             vals['stage_id'] = 'new'
 
         return super().create(vals)
-
-    #
-    # if 'application_id' in vals and not vals.get('name'):
-    #     if rec.application_id:
-    #         rec.name = rec.application_id.partner_name or rec.application_id.name
 
     def write(self, vals):
         res = super().write(vals)

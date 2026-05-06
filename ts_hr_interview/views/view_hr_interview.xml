@@ -18,7 +18,8 @@
                     <div class="row justify-content-between position-relative w-100 m-0">
                         <div class="oe_title ps-0 pe-2">
                             <h1 class="d-flex flex-row align-items-center">
-                                <field name="name" placeholder="Name" style="font-size: min(4vw, 2.6rem);" readonly="application_id"/>
+                                <field name="name" placeholder="Name" style="font-size: min(4vw, 2.6rem);"
+                                       readonly="application_id"/>
                             </h1>
                         </div>
                     </div>
@@ -74,18 +75,23 @@
                 <field name="name"/>
                 <field name="stage_id" invisible="1"/>
                 <field name="start_date"/>
+                <field name="application_id" invisible="1"/>
+                <field name="email_from" invisible="1"/>
 
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click p-2">
-                            <div class="mb-2">
-                                <strong class="fs-4">
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <strong>
                                     <span t-esc="record.name.value"/>
+                                </strong>
+                                <strong>
+                                    <span t-esc="record.start_date.value"/>
                                 </strong>
                             </div>
                             <div class="mb-2">
                                 <strong>
-                                    <span t-esc="record.start_date.value"/>
+                                    <span t-esc="record.email_from.value"/>
                                 </strong>
                             </div>
                         </div>

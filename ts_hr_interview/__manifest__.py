@@ -5,7 +5,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/view_hr_interview.xml',
-        'views/view_hr_applicant.xml',
+        # 'views/view_hr_applicant.xml',
         'data/ir_cron.xml',
         'views/menuitems.xml',
     ]
