@@ -12,10 +12,7 @@ class HrInterview(models.Model):
     application_id = fields.Many2one('hr.applicant', "Application")
     start_date = fields.Datetime(string="Start Date")
 
-    email_from = fields.Char(
-        related="application_id.email_from",
-        store=True
-    )
+    email_from = fields.Char(related="application_id.email_from")
 
     stage_id = fields.Selection(
         [
