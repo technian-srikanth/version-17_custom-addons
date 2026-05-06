@@ -126,10 +126,17 @@ class IrAttachment(models.Model):
             # =====================================================
             # DEBUG LOGS
             # =====================================================
-            if process.stderr:
-                _logger.warning(
+            IGNORED_LO_MESSAGES = (
+                "Ignoring hdmx table",
+                "Could not find platform independent libraries",
+            )
+
+            stderr = process.stderr.strip()
+
+            if stderr and not any(msg in stderr for msg in IGNORED_LO_MESSAGES):
+                _logger.error(
                     "LibreOffice STDERR: %s",
-                    process.stderr
+                    stderr
                 )
 
             _logger.info(
