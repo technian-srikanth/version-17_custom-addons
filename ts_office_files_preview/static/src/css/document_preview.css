@@ -28,14 +28,17 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
 
 .o_preview_container {
     height: 100vh;
-    display: flex;
-    justify-content: center;
     align-items: center;
 }
 
-.o_doc_viewer {
-    height: 100vh;
-    width: 75%;
+
+.o_doc_viewer.other-mode {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.o_doc_viewer.docx-mode {
+
 }
 
 .o-main-components-container {
@@ -60,7 +63,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: 60px;
+    height: 44px;
     background-color: black;
     width: 100%;
     padding: 2px 2px;
@@ -118,17 +121,6 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     background: #e5e5e5;
 }
 
-section.docx {
-    width: 820px;
-    height: 1123px;
-    box-sizing: border-box;
-    background: white;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
 
 article > * {
     max-width: 100% !important;
@@ -158,105 +150,49 @@ article > * {
     width: 100%;
 }
 
-.docx {
-    page-break-after: always;
+.x-spreadsheet-scrollbar.horizontal {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
 }
 
-article > * {
-    page-break-inside: avoid;
+.x-spreadsheet {
+    height: 100vh;
+
 }
 
-.windx-ms-office-preview-header {
-    display: none !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
+.x-spreadsheet-table td {
+    border: 1px solid #e0e0e0;
 }
 
-/*.windx-ms-office-preview-footer {*/
-/*    display: none !important;*/
-/*}*/
-.windx-ms-office-preview-footer {
-    all: unset !important;
+.x-spreadsheet-table tr:first-child td {
+    background: #f5f5f5;
+    font-weight: bold;
 }
 
-/* Viewer background */
-.pdf-viewer {
-    background: #e4e6eb;
-    padding: 30px 0;
-    overflow-y: auto;
-    height: 100%;
+.o_doc_viewer .x-spreadsheet {
+    background: #ffffff !important;
 }
 
-/* Each page */
-.pdf-page {
-    width: 794px;              /* A4 width */
-    min-height: 1122px;        /* A4 height */
-    margin: 20px auto;
-    background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;          /* 🔥 prevents overflow */
+.o_doc_viewer .x-spreadsheet-sheet {
+    background: #ffffff !important;
 }
 
-/* Inner content */
-.pdf-page-inner {
-    padding: 50px 45px;        /* 🔥 better spacing like Word */
-    flex-grow: 1;
-    font-family: Calibri, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.7;
-    word-break: break-word;    /* 🔥 avoids text overflow */
+.o_doc_viewer .x-spreadsheet-table {
+    background: #ffffff !important;
 }
 
-/* Paragraph spacing */
-.pdf-page-inner p {
-    margin: 0 0 10px;
+.o_doc_viewer .x-spreadsheet-cell {
+    background: #ffffff !important;
 }
 
-/* Tables */
-.pdf-page-inner table {
-    border-collapse: collapse;
-    width: 100%;
-    table-layout: auto;
+.o_doc_viewer .x-spreadsheet-row {
+    background: #ffffff !important;
 }
 
-.pdf-page-inner td,
-.pdf-page-inner th {
-    border: 1px solid #ccc;
-    padding: 6px;
-    word-break: break-word;
-}
 
-/* Prevent table breaking (important) */
-.pdf-page-inner table,
-.pdf-page-inner tr {
-    page-break-inside: avoid;
-}
-
-/* Images */
-.pdf-page-inner img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 10px 0;
-}
-
-/* Footer */
-.pdf-footer {
-    text-align: center;
-    font-size: 12px;
-    color: #666;
-    padding: 8px;
-    border-top: 1px solid #eee;
-}
-
-/* Optional: nicer look */
-.pdf-page-inner h1,
-.pdf-page-inner h2,
-.pdf-page-inner h3 {
-    margin-top: 15px;
-    margin-bottom: 8px;
+.o_doc_viewer .x-spreadsheet-header,
+.o_doc_viewer .x-spreadsheet-col-header,
+.o_doc_viewer .x-spreadsheet-row-header {
+    background: #ffffff !important;
+    color: #000 !important;
 }

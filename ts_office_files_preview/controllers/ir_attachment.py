@@ -5,9 +5,14 @@ import csv
 import io
 import json
 import openpyxl
+
+
 class AttachmentPreviewController(http.Controller):
 
-    @http.route('/csv/preview/<int:attachment_id>', auth='user', type='http')
+    # =========================
+    # CSV / XLSX PREVIEW
+    # =========================
+    @http.route('/sheet/preview/<int:attachment_id>', auth='user', type='http')
     def preview_attachment(self, attachment_id):
 
         attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
@@ -16,12 +21,12 @@ class AttachmentPreviewController(http.Controller):
             return self._json_response({"sheets": []})
 
         file_data = base64.b64decode(attachment.datas)
-        filename = attachment.name.lower()
+        filename = (attachment.name or "").lower()
 
         try:
             file_input = io.BytesIO(file_data)
 
-            # XLSX Preview (Multiple Sheets)
+            # XLSX
             if filename.endswith(".xlsx"):
 
                 wb = openpyxl.load_workbook(
@@ -31,15 +36,13 @@ class AttachmentPreviewController(http.Controller):
                 )
 
                 sheets_data = []
-                MAX_ROWS = 500  # prevent huge files freezing UI
+                MAX_ROWS = 500
 
                 for sheet_name in wb.sheetnames:
-
                     sheet = wb[sheet_name]
                     rows = []
 
                     for i, row in enumerate(sheet.iter_rows(values_only=True)):
-
                         if i >= MAX_ROWS:
                             break
 
@@ -53,54 +56,90 @@ class AttachmentPreviewController(http.Controller):
                         "rows": rows
                     })
 
-                return self._json_response({
-                    "sheets": sheets_data
-                })
+                return self._json_response({"sheets": sheets_data})
 
-            # CSV Preview
+            # CSV
             elif filename.endswith(".csv"):
 
                 file_content = file_data.decode("utf-8", errors="ignore")
                 csv_file = io.StringIO(file_content)
 
                 try:
-                    dialect = csv.Sniffer().sniff(file_content[:1024]) if file_content else csv.excel
+                    dialect = (
+                        csv.Sniffer().sniff(file_content[:1024])
+                        if file_content
+                        else csv.excel
+                    )
+
                     reader = csv.reader(csv_file, dialect)
+
                 except Exception:
+
                     csv_file.seek(0)
                     reader = csv.reader(csv_file)
 
                 rows = list(reader)
 
                 return self._json_response({
-                    "sheets": [
-                        {
-                            "name": attachment.name,
-                            "rows": rows
-                        }
-                    ]
+                    "sheets": [{
+                        "name": attachment.name,
+                        "rows": rows
+                    }]
                 })
 
         except Exception as e:
             return self._json_response({"error": str(e)})
 
-    def _json_response(self, data):
+    # =========================
+    # PPT PREVIEW
+    # =========================
+    @http.route('/ppt/preview/<int:attachment_id>', auth='user', type='http')
+    def ppt_preview(self, attachment_id):
+
+        attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
+
+        if not attachment.exists():
+            return request.not_found()
+
+        # UPDATED
+        pdf_data = attachment._convert_to_pdf_with_cache("pptx")
+
         return request.make_response(
-            json.dumps(data),
-            headers=[("Content-Type", "application/json")]
+            pdf_data,
+            headers=[
+                ("Content-Type", "application/pdf")
+            ]
         )
 
-#
-# class PublicAttachment(http.Controller):
-#
-#     @http.route('/public/doc/<int:attachment_id>', type='http', auth='public')
-#     def get_doc(self, attachment_id):
-#         attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
-#
-#         return request.make_response(
-#             attachment.datas,
-#             headers=[
-#                 ('Content-Type', attachment.mimetype),
-#                 ('Content-Disposition', f'inline; filename={attachment.name}')
-#             ]
-#         )
+    # =========================
+    # DOCX PREVIEW
+    # =========================
+    @http.route('/docx/preview/<int:attachment_id>', auth='user', type='http')
+    def docx_preview(self, attachment_id):
+
+        attachment = request.env['ir.attachment'].sudo().browse(attachment_id)
+
+        if not attachment.exists():
+            return request.not_found()
+
+        # UPDATED
+        pdf_data = attachment._convert_to_pdf_with_cache("docx")
+
+        return request.make_response(
+            pdf_data,
+            headers=[
+                ("Content-Type", "application/pdf")
+            ]
+        )
+
+    # =========================
+    # JSON RESPONSE
+    # =========================
+    def _json_response(self, data):
+
+        return request.make_response(
+            json.dumps(data),
+            headers=[
+                ("Content-Type", "application/json")
+            ]
+        )

@@ -7,13 +7,18 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='general_information']" position="after">
                 <page name="manager_info" string="Manager Details">
-                    <group>
-                        <group>
-                            <field name="manager_name"/>
+                    <field name="contact_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
                             <field name="email"/>
                             <field name="phone"/>
-                        </group>
-                    </group>
+                        </tree>
+                        <form>
+                            <field name="name"/>
+                            <field name="email"/>
+                            <field name="phone"/>
+                        </form>
+                    </field>
                 </page>
             </xpath>
         </field>

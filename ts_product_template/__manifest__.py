@@ -2,5 +2,7 @@
 
     "name": "product additional details",
     'depends': ['product'],
-    'data': ['views/view_product_form.xml'],
+    'data': [
+        "security/ir.model.access.csv",
+        "views/view_product_form.xml", ],
 }
