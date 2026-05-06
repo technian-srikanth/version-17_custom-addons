@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <data>
         <record id="ir_cron_generate_attachment_previews" model="ir.cron">
