@@ -78,7 +78,6 @@ if (!window._docPreviewClickAttached) {
             attachmentId: attachmentId,
         });
 
-        // wait for dialog render (safe minimal delay)
         await new Promise(r => setTimeout(r, 50));
 
         const viewer = document.getElementById("doc_viewer");

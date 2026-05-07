@@ -9,9 +9,6 @@ import shutil
 
 _logger = logging.getLogger(__name__)
 
-# =====================================================
-# LIBREOFFICE PATH
-# =====================================================
 if platform.system() == "Windows":
     LIBREOFFICE_PATH = r"C:\Program Files\LibreOffice\program\soffice.exe"
 else:
@@ -26,25 +23,14 @@ if not os.path.exists(LIBREOFFICE_PATH):
 class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
-    # =====================================================
-    # GENERIC PDF CONVERTER
-    # =====================================================
     def _convert_to_pdf_with_cache(self, ext):
 
         self.ensure_one()
-
-        # =====================================================
-        # VALIDATE FILE
-        # =====================================================
         if not self.datas:
             raise Exception("Attachment has no data")
 
         cache_key = f"{self.id}_{self.checksum}"
         cached_name = f"cache_{cache_key}.pdf"
-
-        # =====================================================
-        # CHECK CACHE
-        # =====================================================
         preview_cache = self.env['ir.attachment'].sudo().search([
             ('name', '=', cached_name),
         ], limit=1)
@@ -52,39 +38,20 @@ class IrAttachment(models.Model):
         if preview_cache:
             return base64.b64decode(preview_cache.datas)
 
-        # =====================================================
-        # REMOVE OLD CACHE
-        # =====================================================
         old_caches = self.env['ir.attachment'].sudo().search([
             ('name', 'like', f"cache_{self.id}_")
         ])
 
         old_caches.unlink()
-
-        # =====================================================
-        # FILE DATA
-        # =====================================================
         file_data = base64.b64decode(self.datas)
 
         with tempfile.TemporaryDirectory() as tmpdir:
 
             input_path = os.path.join(tmpdir, f"input.{ext}")
-
-            # =====================================================
-            # WRITE INPUT FILE
-            # =====================================================
             with open(input_path, "wb") as f:
                 f.write(file_data)
-
-            # =====================================================
-            # CHECK FILE SIZE
-            # =====================================================
             if os.path.getsize(input_path) == 0:
                 raise Exception("Input file is empty")
-
-            # =====================================================
-            # UNIQUE LIBREOFFICE PROFILE
-            # =====================================================
             libreoffice_profile = os.path.join(
                 tmpdir,
                 "lo_profile"
@@ -94,10 +61,6 @@ class IrAttachment(models.Model):
                 libreoffice_profile,
                 exist_ok=True
             )
-
-            # =====================================================
-            # CONVERT TO PDF
-            # =====================================================
             process = subprocess.run([
                 LIBREOFFICE_PATH,
 
@@ -108,24 +71,16 @@ class IrAttachment(models.Model):
                 '--nofirststartwizard',
                 '--nolockcheck',
                 '--nodefault',
-
                 '--convert-to',
                 'pdf',
-
                 '--outdir',
                 tmpdir,
-
                 input_path,
-
             ],
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=60
             )
-
-            # =====================================================
-            # DEBUG LOGS
-            # =====================================================
             IGNORED_LO_MESSAGES = (
                 "Ignoring hdmx table",
                 "Could not find platform independent libraries",
@@ -143,20 +98,12 @@ class IrAttachment(models.Model):
                 "LibreOffice Return Code: %s",
                 process.returncode
             )
-
-            # =====================================================
-            # CHECK CONVERSION STATUS
-            # =====================================================
             if process.returncode != 0:
                 raise Exception(
                     f"LibreOffice conversion failed:\n"
                     f"STDOUT: {process.stdout}\n"
                     f"STDERR: {process.stderr}"
                 )
-
-            # =====================================================
-            # CHECK OUTPUT PDF
-            # =====================================================
             pdf_path = os.path.join(
                 tmpdir,
                 "input.pdf"
@@ -166,16 +113,8 @@ class IrAttachment(models.Model):
                 raise Exception(
                     "PDF file not generated"
                 )
-
-            # =====================================================
-            # READ PDF
-            # =====================================================
             with open(pdf_path, "rb") as f:
                 pdf_data = f.read()
-
-        # =====================================================
-        # SAVE CACHE
-        # =====================================================
         self.env['ir.attachment'].sudo().create({
             'name': cached_name,
             'datas': base64.b64encode(pdf_data),
@@ -185,9 +124,6 @@ class IrAttachment(models.Model):
 
         return pdf_data
 
-    # =====================================================
-    # CRON METHOD
-    # =====================================================
     @api.model
     def cron_generate_docx_pptx_previews(self, batch_size=5):
         """
@@ -214,16 +150,8 @@ class IrAttachment(models.Model):
         for attachment in attachments:
 
             try:
-
-                # =====================================================
-                # SKIP EMPTY FILES
-                # =====================================================
                 if not attachment.datas:
                     continue
-
-                # =====================================================
-                # DETECT EXTENSION
-                # =====================================================
                 ext = (
                     'docx'
                     if attachment.mimetype.endswith(
@@ -231,10 +159,6 @@ class IrAttachment(models.Model):
                     )
                     else 'pptx'
                 )
-
-                # =====================================================
-                # GENERATE PREVIEW
-                # =====================================================
                 attachment._convert_to_pdf_with_cache(ext)
 
                 _logger.info(

@@ -1,7 +1,7 @@
 {
     'name': 'Attachment files preview',
     'version': '17.0.0.0.1',
-    'depends': ['web', 'base', 'mail', ],
+    'depends': ['base', 'mail', 'web', ],
     'author': 'Nians',
     'description': """ CSV ,XLSX ,PPTX AND  DOCX Attachments files preview """,
     "data": ['data/ir_cron.xml', ],
