@@ -1,6 +1,6 @@
 /** @odoo-module **/
-import {Dialog} from "@web/core/dialog/dialog";
-import {Component, xml} from "@odoo/owl";
+import { Dialog } from "@web/core/dialog/dialog";
+import { Component, xml } from "@odoo/owl";
 
 export class DocumentPreview extends Component {
     static components = {Dialog};
@@ -19,8 +19,9 @@ export class DocumentPreview extends Component {
 }
 
 DocumentPreview.template = xml`
-<Dialog size="'fullscreen'" technical="false"
-    class="'o_doc_preview_dialog'"
+<Dialog
+    size="'fullscreen'"
+    technical="false"
     contentClass="'o_full_screen_preview'">
 
 <t t-set-slot="header">
