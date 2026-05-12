@@ -1,0 +1,29 @@
+<odoo>
+
+    <record id="ir_cron_validate_partner_emails"
+            model="ir.cron">
+
+        <field name="name">
+            Partner Email Validation
+        </field>
+
+        <field name="model_id"
+               ref="base.model_res_partner"/>
+
+        <field name="state">code</field>
+
+        <field name="code">
+            model.cron_validate_partner_emails()
+        </field>
+
+        <field name="interval_number">1</field>
+
+        <field name="interval_type">hours</field>
+
+        <field name="numbercall">-1</field>
+
+        <field name="active">True</field>
+
+    </record>
+
+</odoo>

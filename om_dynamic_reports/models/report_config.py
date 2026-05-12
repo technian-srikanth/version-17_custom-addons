@@ -222,9 +222,11 @@ class DynamicReportConfig(models.TransientModel):
                 account_types = ['asset_receivable', 'liability_payable']
 
             self.env.cr.execute("""
-                SELECT id FROM account_account
-                WHERE account_type IN %s AND NOT deprecated
-            """, (tuple(account_types),))
+                                SELECT id
+                                FROM account_account
+                                WHERE account_type IN %s
+                                  AND NOT deprecated
+                                """, (tuple(account_types),))
 
             form['computed']['account_ids'] = [x[0] for x in self.env.cr.fetchall()]
 
@@ -288,6 +290,31 @@ class DynamicReportConfig(models.TransientModel):
                 line['has_child_lines'] = True
 
             return [report_lines, currency_data]
+
+        # =====================================================
+        # JOURNALS AUDIT
+        # =====================================================
+        if report_name == 'journals_audit':
+
+            lines = []
+
+            moves = self.env['account.move.line'].search([
+                ('move_id.state', '=', data.get('target_move', 'posted'))
+            ], limit=200)
+
+            for ml in moves:
+                lines.append({
+                    'id': str(ml.id),
+                    'name': ml.move_name or '/',
+                    'debit': ml.debit,
+                    'credit': ml.credit,
+                    'balance': ml.balance,
+                    'level': 0,
+                    'parent': None,
+                    'has_child_lines': False,
+                })
+
+            return [lines, currency_data]
 
         # =====================================================
         # TRIAL BALANCE
@@ -406,10 +433,11 @@ class DynamicReportConfig(models.TransientModel):
         form["computed"]["move_state"] = ["posted"]
 
         self.env.cr.execute("""
-            SELECT id FROM account_account
-            WHERE account_type IN ('asset_receivable','liability_payable')
-            AND NOT deprecated
-        """)
+                            SELECT id
+                            FROM account_account
+                            WHERE account_type IN ('asset_receivable', 'liability_payable')
+                              AND NOT deprecated
+                            """)
         form["computed"]["account_ids"] = [x[0] for x in self.env.cr.fetchall()]
 
         partner = self.env["res.partner"].browse(partner_id)

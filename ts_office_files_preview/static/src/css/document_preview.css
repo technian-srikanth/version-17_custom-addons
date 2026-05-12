@@ -9,7 +9,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     position: fixed;
 }
 
-.o_full_screen_preview > .modal-header {
+.o_full_screen_preview>.modal-header {
     padding: 0 0;
     border: none;
 }
@@ -37,9 +37,6 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     margin: 0 auto;
 }
 
-.o_doc_viewer.docx-mode {
-
-}
 
 .o-main-components-container {
     padding: 0;
@@ -58,7 +55,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     margin: 0;
 }
 
-.o_full_screen_preview > .modal-header > .header {
+.o_full_screen_preview>.modal-header>.header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -69,7 +66,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
     padding: 2px 2px;
 }
 
-.o_full_screen_preview > .modal-header > .header h5 {
+.o_full_screen_preview>.modal-header>.header h5 {
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -98,7 +95,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
 }
 
 
-.section-2 > .btn-close {
+.section-2>.btn-close {
     border: none;
     font-size: 12px;
     cursor: pointer;
@@ -122,7 +119,7 @@ body:has(.o_doc_preview_dialog) .o_main_navbar {
 }
 
 
-article > * {
+article>* {
     max-width: 100% !important;
     height: auto !important;
     clear: both;
@@ -137,7 +134,7 @@ article > * {
     color: #444;
 }
 
-.o_full_screen_preview > .modal-footer {
+.o_full_screen_preview>.modal-footer {
     border: none;
 }
 
