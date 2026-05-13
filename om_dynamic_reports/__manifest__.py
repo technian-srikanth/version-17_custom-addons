@@ -2,7 +2,7 @@
 # License: Odoo Proprietary License v1.0
 
 {
-    'name': 'Odoo 16 Dynamic Accounting Reports - PDF, Excel',
+    'name': 'Odoo 17 Dynamic Accounting Reports - PDF, Excel',
     'version': '17.0.3.0.0',
     'category': 'Invoicing Management',
     'summary': 'All in One Dynamic Accounting Reports For Odoo & '
@@ -28,9 +28,8 @@
         'web.assets_backend': [
             'om_dynamic_reports/static/src/css/report_controller.css',
             'om_dynamic_reports/static/src/js/jquery-resizable.js',
-            'om_dynamic_reports/static/src/js/dynamic_reports.js',
-            'om_dynamic_reports/static/src/js/dynamic_report_actions.js',
             'om_dynamic_reports/static/src/xml/report_control.xml',
+            'om_dynamic_reports/static/src/js/dynamic_reports.js',
         ],
         'web.report_assets_common': [
             'om_dynamic_reports/static/src/css/report_controller.css',
