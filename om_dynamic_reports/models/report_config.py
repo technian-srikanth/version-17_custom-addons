@@ -347,11 +347,22 @@ class DynamicReportConfig(models.TransientModel):
             return [report_lines, currency_data]
 
         # =====================================================
+        # =====================================================
+        # =====================================================
+        # AGED PARTNER
+        # =====================================================
+        # =====================================================
         # AGED PARTNER
         # =====================================================
         if report_name == 'aged_partner':
-            Report = self.env['report.accounting_pdf_reports.report_agedpartnerbalance']
 
+            Report = self.env[
+                'report.accounting_pdf_reports.report_agedpartnerbalance'
+            ]
+
+            # ==========================================
+            # DEFAULTS
+            # ==========================================
             if not data.get('date_from'):
                 data['date_from'] = time.strftime('%Y-%m-%d')
 
@@ -359,55 +370,247 @@ class DynamicReportConfig(models.TransientModel):
             data.setdefault('result_selection', 'customer')
             data.setdefault('period_length', 30)
 
-            movelines, total, _ = Report._get_partner_move_lines(
-                ['receivable'],
+            # ==========================================
+            # ACCOUNT TYPE (ODOO 17)
+            # ==========================================
+            if data.get('result_selection') == 'customer':
+
+                account_type = ['asset_receivable']
+
+            elif data.get('result_selection') == 'supplier':
+
+                account_type = ['liability_payable']
+
+            elif data.get('result_selection') == 'customer_supplier':
+
+                account_type = [
+                    'asset_receivable',
+                    'liability_payable'
+                ]
+
+            else:
+
+                account_type = [
+                    'asset_receivable',
+                    'liability_payable'
+                ]
+
+            # ==========================================
+            # FETCH DATA
+            # ==========================================
+            movelines, total, dummy = Report._get_partner_move_lines(
+                account_type,
                 [],
+
                 data['date_from'],
                 data['target_move'],
                 data['period_length']
             )
 
+            # ==========================================
+            # DEBUG
+            # ==========================================
+
+            if not movelines:
+                print("NO MOVELINES FOUND")
+
             lines = []
 
+            # ==========================================
+            # BUILD LINES
+            # ==========================================
             for i, line in enumerate(movelines):
+
+                partner_id = line.get('partner_id') or i
+
+                not_due = line.get('direction', 0)
+
+                bucket_0_30 = line.get('0', 0)
+                bucket_30_60 = line.get('1', 0)
+                bucket_60_90 = line.get('2', 0)
+                bucket_90_120 = line.get('3', 0)
+                bucket_120 = line.get('4', 0)
+
+                total_amount = line.get('total', 0)
+
+                # ==========================================
+                # MAIN ROW
+                # ==========================================
                 lines.append({
-                    'id': f"partner_{line.get('partner_id', i)}",
+                    'id': f"partner_{partner_id}",
+
                     'name': line.get('name', ''),
 
-                    'debit': line.get('direction', 0),
-                    'credit': sum([line.get(str(x), 0) for x in range(5)]),
-                    'balance': line.get('total', 0),
+                    # GENERIC TABLE MAPPING
+                    'debit': not_due,
+                    'credit': bucket_0_30,
+                    'balance': total_amount,
 
                     'level': 0,
                     'parent': None,
+
                     'has_child_lines': False,
                 })
 
+                # ==========================================
+                # EXTRA AGING BUCKETS
+                # ==========================================
+                aging_rows = [
+                    ("30-60", bucket_30_60),
+                    ("60-90", bucket_60_90),
+                    ("90-120", bucket_90_120),
+                    ("120+", bucket_120),
+                ]
+
+                for label, amount in aging_rows:
+
+                    if not amount:
+                        continue
+
+                    lines.append({
+                        'id': f"{partner_id}_{label}",
+
+                        'name': f"   {label}",
+
+                        'debit': 0,
+                        'credit': amount,
+                        'balance': amount,
+
+                        'level': 1,
+                        'parent': None,
+
+                        'has_child_lines': False,
+                    })
+
             return [lines, currency_data]
+        # TAX REPORT
+        # =====================================================
+        # =====================================================
+        # TAX REPORT
+        # =====================================================
         # =====================================================
         # TAX REPORT
         # =====================================================
         if report_name == 'tax_report':
-            Report = self.env['report.accounting_pdf_reports.report_tax']
 
-            raw_lines = Report.get_lines({
-                'date_from': data.get('date_from'),
-                'date_to': data.get('date_to'),
-                'target_move': data.get('target_move', 'posted'),
-            })
+            journal_ids = data.get('journal_ids', [])
+            tax_type = data.get('tax_type', 'all')
+
+            domain = [
+                ('tax_line_id', '!=', False),
+            ]
+
+            # ==========================================
+            # DATE FILTER
+            # ==========================================
+            if data.get('date_from'):
+                domain.append((
+                    'date',
+                    '>=',
+                    data.get('date_from')
+                ))
+
+            if data.get('date_to'):
+                domain.append((
+                    'date',
+                    '<=',
+                    data.get('date_to')
+                ))
+
+            # ==========================================
+            # JOURNAL FILTER
+            # ==========================================
+            if journal_ids:
+                domain.append((
+                    'journal_id',
+                    'in',
+                    journal_ids
+                ))
+
+            # ==========================================
+            # POSTED FILTER
+            # ==========================================
+            if data.get('target_move') == 'posted':
+                domain.append((
+                    'move_id.state',
+                    '=',
+                    'posted'
+                ))
+
+            # ==========================================
+            # SALE FILTER
+            # ==========================================
+            if tax_type == 'sale':
+
+                domain.append((
+                    'move_id.move_type',
+                    'in',
+                    ['out_invoice', 'out_refund']
+                ))
+
+            # ==========================================
+            # PURCHASE FILTER
+            # ==========================================
+            elif tax_type == 'purchase':
+
+                domain.append((
+                    'move_id.move_type',
+                    'in',
+                    ['in_invoice', 'in_refund']
+                ))
+
+            # ==========================================
+            # FETCH TAX LINES
+            # ==========================================
+            move_lines = self.env['account.move.line'].search(domain)
 
             lines = []
+            grouped = {}
 
-            for i, l in enumerate(raw_lines):
+            # ==========================================
+            # GROUP TAXES
+            # ==========================================
+            for ml in move_lines:
 
-                if not isinstance(l, dict):
+                tax = ml.tax_line_id
+
+                if not tax:
                     continue
 
+                key = tax.id
+
+                if key not in grouped:
+                    grouped[key] = {
+                        'name': tax.name,
+                        'net': 0.0,
+                        'tax': 0.0,
+                    }
+
+                grouped[key]['tax'] += abs(ml.balance)
+
+                if ml.tax_base_amount:
+                    grouped[key]['net'] += abs(ml.tax_base_amount)
+
+            # ==========================================
+            # BUILD RESULT
+            # ==========================================
+            for tax_id, vals in grouped.items():
+                net = vals['net']
+                tax = vals['tax']
+
                 lines.append({
-                    **l,
-                    'id': str(l.get('id', f"tax_{i}")),
-                    'parent': str(l['parent']) if l.get('parent') else None,
-                    'has_child_lines': True,
+                    'id': str(tax_id),
+
+                    'name': vals['name'],
+
+                    'debit': net,
+                    'credit': tax,
+                    'balance': net + tax,
+
+                    'level': 0,
+                    'parent': None,
+
+                    'has_child_lines': False,
                 })
 
             return [lines, currency_data]
@@ -482,9 +685,6 @@ class ReportDynamic(models.AbstractModel):
             docids = [self.env.company.id]
 
         docs = self.env['res.company'].browse(docids)
-
-        print("docs", docs)
-        print("docids", docids)
 
         return {
             'docs': docs,

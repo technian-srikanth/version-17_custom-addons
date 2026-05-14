@@ -140,9 +140,9 @@ export class DynamicReports extends Component {
 
             display_account: this.state.filters.display_account,
             sortby: this.state.filters.sortby,
-            result_selection: this.state.filters.result_selection,
+            result_selection:     this.state.filters.result_selection || "customer",
             reconciled: this.state.filters.reconciled,
-            period_length: this.state.filters.period_length,
+            period_length: this.state.filters.period_length || 30,
 
             company_id: this.state.filters.company_id,
 
@@ -358,62 +358,139 @@ export class DynamicReports extends Component {
     }
 
     getDisplayLines() {
+
         const result = [];
         const lines = this.state.report_lines || [];
 
-        // helper: normalize id to string (handles numbers + "ml_..." ids)
-        const toKey = (v) => (v === undefined || v === null ? null : String(v));
+        // =====================================================
+        // SAFE UNIQUE KEY GENERATOR
+        // =====================================================
 
-        // group children by parent for fast lookup
+        const makeKey = (prefix = "row") => {
+            return `${prefix}_${Math.random().toString(36).substring(2, 12)}`;
+        };
+
+        // =====================================================
+        // GROUP CHILDREN BY PARENT
+        // =====================================================
+
         const byParent = {};
+
         for (const l of lines) {
-            const p = toKey(l.parent);
-            if (!p) continue;
-            if (!byParent[p]) byParent[p] = [];
-            byParent[p].push(l);
-        }
 
-        // recursive renderer
-        const addChildren = (parentId) => {
-            const pKey = toKey(parentId);
-            let children = [...(byParent[pKey] || [])];
-
-            if (this.state.loadedChildren[pKey]) {
-                children.push(...this.state.loadedChildren[pKey]);
+            if (
+                l.parent === undefined ||
+                l.parent === null ||
+                l.parent === false
+            ) {
+                continue;
             }
 
-            for (const child of children) {
-                const cKey = toKey(child.id);
+            const parentKey = String(l.parent);
 
-                const hasChildren = !!byParent[cKey]?.length;
+            if (!byParent[parentKey]) {
+                byParent[parentKey] = [];
+            }
+
+            byParent[parentKey].push(l);
+        }
+
+        // =====================================================
+        // RECURSIVE CHILD RENDERER
+        // =====================================================
+
+        const addChildren = (parentId) => {
+
+            const parentKey = String(parentId);
+
+            let children = [...(byParent[parentKey] || [])];
+
+            // lazy loaded partner ledger children
+            if (this.state.loadedChildren[parentKey]) {
+                children.push(...this.state.loadedChildren[parentKey]);
+            }
+
+            for (let index = 0; index < children.length; index++) {
+
+                const child = children[index];
+
+                // =============================================
+                // SAFE UNIQUE CHILD KEY
+                // =============================================
+
+                let childKey;
+
+                if (
+                    child.id !== undefined &&
+                    child.id !== null &&
+                    child.id !== false
+                ) {
+                    childKey = `child_${child.id}`;
+                } else if (child.partner) {
+                    childKey = `partner_${child.partner}_${index}`;
+                } else if (child.move_id) {
+                    childKey = `move_${child.move_id}_${index}`;
+                } else if (child.res_id) {
+                    childKey = `res_${child.res_id}_${index}`;
+                } else {
+                    childKey = makeKey("child");
+                }
+
+                const hasChildren = !!byParent[String(child.id)]?.length;
 
                 result.push({
                     ...child,
                     _type: "child",
-                    _key: cKey,              // 🔥 unique per row
+                    _key: childKey,
                     has_child_lines: hasChildren,
                 });
 
-                // expand ONLY this node’s subtree
-                if (this.state.expandedLines[cKey]) {
+                // =============================================
+                // EXPAND SUBTREE
+                // =============================================
+
+                if (this.state.expandedLines[childKey]) {
                     addChildren(child.id);
                 }
             }
         };
 
-        // ROOT LEVEL (only lines with no parent)
+        // =====================================================
+        // ROOT LINES
+        // =====================================================
+
         for (let i = 0; i < lines.length; i++) {
+
             const line = lines[i];
 
-            if (line.parent !== undefined && line.parent !== null) continue;
+            // only root rows
+            if (
+                line.parent !== undefined &&
+                line.parent !== null &&
+                line.parent !== false
+            ) {
+                continue;
+            }
 
-            const key = line.id
-                ? String(line.id)
-                : line.partner
-                    ? `partner_${line.partner}`
-                    : String(this.getLineKey(line, i));
+            // =============================================
+            // SAFE UNIQUE PARENT KEY
+            // =============================================
 
-            const hasChildren = !!byParent[key]?.length;
+            let key;
+
+            if (
+                line.id !== undefined &&
+                line.id !== null &&
+                line.id !== false
+            ) {
+                key = `parent_${line.id}`;
+            } else if (line.partner) {
+                key = `partner_${line.partner}`;
+            } else {
+                key = `root_${i}`;
+            }
+
+            const hasChildren = !!byParent[String(line.id)]?.length;
 
             result.push({
                 ...line,
@@ -422,6 +499,10 @@ export class DynamicReports extends Component {
                 _index: i,
                 has_child_lines: hasChildren,
             });
+
+            // =============================================
+            // EXPAND CHILDREN
+            // =============================================
 
             if (this.state.expandedLines[key]) {
                 addChildren(line.id);
@@ -523,6 +604,8 @@ patch(DynamicReports.prototype, {
                     "result_selection",
                     "date_from",
                     "period_length",
+                    "journal_ids",
+
                 ]);
                 this._markRequired(["date_from", "period_length"]);
                 break;

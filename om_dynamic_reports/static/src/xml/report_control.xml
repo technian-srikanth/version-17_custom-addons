@@ -101,9 +101,7 @@
                 <tbody>
                     <t t-foreach="getDisplayLines()"
                        t-as="line"
-                       t-key="line._type === 'parent'
-                              ? line._key
-                              : line._parentKey + '_' + line._childIndex">
+                       t-key="line._key">
 
                         <!-- PARENT -->
                         <tr t-if="line._type === 'parent'">
