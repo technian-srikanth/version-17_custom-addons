@@ -24,16 +24,17 @@
 
             <xpath expr="//sheet" position="inside">
 
-                <group string="Email Validation">
+                <group string="Email Validation"
+                       col="4">
                     <field name="email_valid"
                            readonly="1"
                            widget="boolean_toggle"/>
 
                     <field name="batch"/>
-
                     <field name="validation_msg"
                            readonly="1"
-                           nolabel="1"/>
+                           nolabel="1"
+                           colspan="4"/>
 
                 </group>
 
