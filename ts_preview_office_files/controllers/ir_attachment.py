@@ -27,7 +27,8 @@ class AttachmentPreviewController(http.Controller):
             file_input = io.BytesIO(file_data)
 
             # XLSX
-            if filename.endswith(".xlsx"):
+            if (filename.endswith(".xlsx") or filename.endswith(".xlsm") or
+                    filename.endswith(".xlsb") or filename.endswith(".xls")):
 
                 wb = openpyxl.load_workbook(
                     file_input,

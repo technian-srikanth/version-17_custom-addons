@@ -1,13 +1,10 @@
 from odoo import models, api
-import logging
 import base64
 import tempfile
 import subprocess
 import os
 import platform
 import shutil
-
-_logger = logging.getLogger(__name__)
 
 if platform.system() == "Windows":
     LIBREOFFICE_PATH = r"C:\Program Files\LibreOffice\program\soffice.exe"
@@ -26,11 +23,13 @@ class IrAttachment(models.Model):
     def _convert_to_pdf_with_cache(self, ext):
 
         self.ensure_one()
+
         if not self.datas:
             raise Exception("Attachment has no data")
 
         cache_key = f"{self.id}_{self.checksum}"
         cached_name = f"cache_{cache_key}.pdf"
+
         preview_cache = self.env['ir.attachment'].sudo().search([
             ('name', '=', cached_name),
         ], limit=1)
@@ -43,15 +42,19 @@ class IrAttachment(models.Model):
         ])
 
         old_caches.unlink()
+
         file_data = base64.b64decode(self.datas)
 
         with tempfile.TemporaryDirectory() as tmpdir:
 
             input_path = os.path.join(tmpdir, f"input.{ext}")
+
             with open(input_path, "wb") as f:
                 f.write(file_data)
+
             if os.path.getsize(input_path) == 0:
                 raise Exception("Input file is empty")
+
             libreoffice_profile = os.path.join(
                 tmpdir,
                 "lo_profile"
@@ -61,6 +64,7 @@ class IrAttachment(models.Model):
                 libreoffice_profile,
                 exist_ok=True
             )
+
             process = subprocess.run([
                 LIBREOFFICE_PATH,
 
@@ -81,29 +85,14 @@ class IrAttachment(models.Model):
                 text=True,
                 timeout=60
             )
-            IGNORED_LO_MESSAGES = (
-                "Ignoring hdmx table",
-                "Could not find platform independent libraries",
-            )
 
-            stderr = process.stderr.strip()
-
-            if stderr and not any(msg in stderr for msg in IGNORED_LO_MESSAGES):
-                _logger.error(
-                    "LibreOffice STDERR: %s",
-                    stderr
-                )
-
-            _logger.info(
-                "LibreOffice Return Code: %s",
-                process.returncode
-            )
             if process.returncode != 0:
                 raise Exception(
                     f"LibreOffice conversion failed:\n"
                     f"STDOUT: {process.stdout}\n"
                     f"STDERR: {process.stderr}"
                 )
+
             pdf_path = os.path.join(
                 tmpdir,
                 "input.pdf"
@@ -113,8 +102,10 @@ class IrAttachment(models.Model):
                 raise Exception(
                     "PDF file not generated"
                 )
+
             with open(pdf_path, "rb") as f:
                 pdf_data = f.read()
+
         self.env['ir.attachment'].sudo().create({
             'name': cached_name,
             'datas': base64.b64encode(pdf_data),
@@ -126,10 +117,6 @@ class IrAttachment(models.Model):
 
     @api.model
     def cron_generate_docx_pptx_previews(self, batch_size=5):
-        """
-        Generate cached PDF previews
-        for DOCX / PPTX attachments.
-        """
 
         mimetypes = [
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -142,16 +129,12 @@ class IrAttachment(models.Model):
             ('name', 'not like', 'cache_%')
         ], limit=batch_size)
 
-        _logger.info(
-            "DOCX/PPTX Preview Cron Started. Found %s attachments",
-            len(attachments)
-        )
-
         for attachment in attachments:
 
             try:
                 if not attachment.datas:
                     continue
+
                 ext = (
                     'docx'
                     if attachment.mimetype.endswith(
@@ -159,23 +142,8 @@ class IrAttachment(models.Model):
                     )
                     else 'pptx'
                 )
+
                 attachment._convert_to_pdf_with_cache(ext)
 
-                _logger.info(
-                    "Preview generated for attachment ID %s (%s)",
-                    attachment.id,
-                    ext
-                )
-
-            except Exception as e:
-
-                _logger.exception(
-                    "Failed to generate preview "
-                    "for attachment ID %s: %s",
-                    attachment.id,
-                    str(e)
-                )
-
-        _logger.info(
-            "DOCX/PPTX Preview Cron Completed"
-        )
+            except Exception:
+                pass

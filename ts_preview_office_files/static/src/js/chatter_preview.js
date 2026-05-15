@@ -1,6 +1,6 @@
 /** @odoo-module **/
-import { Dialog } from "@web/core/dialog/dialog";
-import { Component, xml } from "@odoo/owl";
+import {Dialog} from "@web/core/dialog/dialog";
+import {Component, xml} from "@odoo/owl";
 
 export class DocumentPreview extends Component {
     static components = {Dialog};
@@ -58,7 +58,7 @@ if (!window._docPreviewClickAttached) {
         const nameEl = card.querySelector(".text-truncate");
         const filename = nameEl ? nameEl.innerText.trim() : "";
 
-        if (![".csv", ".xlsx", ".docx", ".pptx"]
+        if (![".csv", ".xlsx", ".xls", ".xlsb", ".xlsm", ".docx", ".doc", ".pptx", '.ppt']
             .some(ext => filename.toLowerCase().endsWith(ext))) {
             return;
         }
@@ -87,7 +87,11 @@ if (!window._docPreviewClickAttached) {
         viewer.replaceChildren();
 
         // ================= CSV / XLSX =================
-        if (filename.endsWith(".xlsx") || filename.endsWith(".csv")) {
+        if (filename.endsWith(".xlsx")
+            || filename.endsWith(".xls")
+            || filename.endsWith(".xlsb")
+            || filename.endsWith(".xlsm")
+            || filename.endsWith(".csv")) {
 
             viewer.classList.add("other-mode");
 
@@ -128,7 +132,7 @@ if (!window._docPreviewClickAttached) {
         }
 
         // ================= DOCX =================
-        else if (filename.endsWith(".docx")) {
+        else if (filename.endsWith(".docx") || filename.endsWith(".doc")) {
 
             viewer.classList.add("docx-mode");
 
@@ -182,7 +186,7 @@ if (!window._docPreviewClickAttached) {
         }
 
         // ================= PPTX =================
-        else if (filename.endsWith(".pptx")) {
+        else if (filename.endsWith(".pptx") || filename.endsWith(".ppt")) {
 
             viewer.classList.add("other-mode");
 

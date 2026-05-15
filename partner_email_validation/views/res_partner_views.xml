@@ -6,7 +6,6 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <!-- Add Button in Header -->
             <xpath expr="//sheet" position="before">
                 <header>
                     <button name="action_validate_email"
@@ -15,7 +14,6 @@
                             class="oe_highlight"/>
                 </header>
             </xpath>
-            <!-- Add Fields -->
             <xpath expr="//sheet" position="inside">
                 <group string="Email Validation">
                     <field name="email_valid" readonly="1" widget="boolean_toggle"/>

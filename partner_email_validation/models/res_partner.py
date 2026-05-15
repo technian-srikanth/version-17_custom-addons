@@ -80,12 +80,12 @@ class ResPartner(models.Model):
     # ---------------------------------------------------------
 
     @api.model
-    def cron_validate_partner_emails(self, limit=200):
+    def cron_validate_partner_emails(self, limit=600):
 
         partners = self.search([
             ('email', '!=', False),
             ('email_valid', '=', False),
-            ('batch', '=', 'Batch B'),
+            ('validation_msg', '=', False),
         ], limit=limit)
 
         for partner in partners:
@@ -111,132 +111,6 @@ class ResPartner(models.Model):
 
                 self.env.cr.commit()
 
-        # ---------------------------------------------------------
-        # SMTP VALIDATION
-        # ---------------------------------------------------------
-
-        # def _smtp_check_advanced(self, email):
-        #
-        #     try:
-        #
-        #         if '@' not in email:
-        #             return {
-        #                 "success": False,
-        #                 "error_code": "INVALID_FORMAT",
-        #                 "smtp_code": None,
-        #                 "message": "Invalid email format"
-        #             }
-        #
-        #         domain = email.split('@')[1].strip().lower()
-        #
-        #         # MX Lookup
-        #         try:
-        #
-        #             answers = dns.resolver.resolve(domain, 'MX')
-        #
-        #             mx_records = sorted([
-        #                 (
-        #                     r.preference,
-        #                     str(r.exchange).rstrip('.').strip().lower()
-        #                 )
-        #                 for r in answers
-        #             ])
-        #             if not mx_records:
-        #                 return {
-        #                     "success": False,
-        #                     "error_code": "NO_MX_RECORD",
-        #                     "smtp_code": None,
-        #                     "message": "No MX records found"
-        #                 }
-        #
-        #             mx_host = mx_records[0][1]
-        #
-        #         except dns.resolver.NXDOMAIN:
-        #             return {
-        #                 "success": False,
-        #                 "error_code": "DOMAIN_NOT_FOUND",
-        #                 "smtp_code": None,
-        #                 "message": "Domain does not exist"
-        #             }
-        #
-        #         except Exception as e:
-        #             return {
-        #                 "success": False,
-        #                 "error_code": "DNS_ERROR",
-        #                 "smtp_code": None,
-        #                 "message": str(e)
-        #             }
-        #
-        #         # SMTP Check
-        #         server = smtplib.SMTP(timeout=30)
-        #
-        #         server.connect(mx_host, 25)
-        #
-        #         server.helo("validator.local")
-        #
-        #         server.mail("verify@example.com")
-        #
-        #         code, message = server.rcpt(email)
-        #
-        #         server.quit()
-        #
-        #         message = (
-        #             message.decode()
-        #             if isinstance(message, bytes)
-        #             else str(message)
-        #         )
-        #
-        #         error_code = ERROR_CODES.get(
-        #             code,
-        #             "UNKNOWN_SMTP_RESPONSE"
-        #         )
-        #
-        #         return {
-        #             "success": code in [250, 251],
-        #             "error_code": error_code,
-        #             "smtp_code": code,
-        #             "message": message
-        #         }
-        #
-        #     except socket.timeout:
-        #         return {
-        #             "success": False,
-        #             "error_code": "CONNECTION_TIMEOUT",
-        #             "smtp_code": None,
-        #             "message": "SMTP connection timeout"
-        #         }
-        #
-        #     except OSError as e:
-        #
-        #         error_message = str(e).lower()
-        #
-        #         if "timed out" in error_message:
-        #             error_code = "PORT_BLOCKED_OR_TIMEOUT"
-        #
-        #         elif "network is unreachable" in error_message:
-        #             error_code = "NETWORK_UNREACHABLE"
-        #
-        #         elif "getaddrinfo failed" in error_message:
-        #             error_code = "INVALID_HOSTNAME"
-        #
-        #         else:
-        #             error_code = "OS_ERROR"
-        #
-        #         return {
-        #             "success": False,
-        #             "error_code": error_code,
-        #             "smtp_code": None,
-        #             "message": str(e)
-        #         }
-        #
-        #     except Exception as e:
-        #         return {
-        #             "success": False,
-        #             "error_code": "UNKNOWN_ERROR",
-        #             "smtp_code": None,
-        #             "message": str(e)
-        #         }
-
         ERROR_CODES = {
             # Success
             250: "VALID_EMAIL",
@@ -256,17 +130,9 @@ class ResPartner(models.Model):
             554: "TRANSACTION_FAILED",
         }
 
-    # ---------------------------------------------------------
-    # SMTP VALIDATION
-    # ---------------------------------------------------------
-
     def smtp_check(self, email):
 
         try:
-
-            # -------------------------------------------------
-            # EMAIL FORMAT VALIDATION
-            # -------------------------------------------------
 
             if '@' not in email:
                 return {
@@ -276,15 +142,7 @@ class ResPartner(models.Model):
                     "message": "Invalid email format"
                 }
 
-            # -------------------------------------------------
-            # DOMAIN EXTRACTION
-            # -------------------------------------------------
-
             domain = email.split('@')[1].strip().lower()
-
-            # -------------------------------------------------
-            # MX LOOKUP
-            # -------------------------------------------------
 
             try:
 
@@ -333,7 +191,7 @@ class ResPartner(models.Model):
             # SMTP CONNECTION
             # -------------------------------------------------
 
-            server = smtplib.SMTP(timeout=45)
+            server = smtplib.SMTP(timeout=60)
 
             server.connect(mx_host, 25)
 
@@ -351,10 +209,6 @@ class ResPartner(models.Model):
                 else str(message)
             )
 
-            # -------------------------------------------------
-            # SMTP RESPONSE HANDLING
-            # -------------------------------------------------
-
             error_code = ERROR_CODES.get(
                 code,
                 "UNKNOWN_SMTP_RESPONSE"
@@ -367,10 +221,6 @@ class ResPartner(models.Model):
                 "message": message,
                 "mx_host": mx_host
             }
-
-        # -------------------------------------------------
-        # NETWORK ERRORS
-        # -------------------------------------------------
 
         except socket.timeout:
             return {
@@ -458,11 +308,3 @@ class ResPartner(models.Model):
                 "smtp_code": None,
                 "message": str(e)
             }
-
-    # ---------------------------------------------------------
-    # EXAMPLE
-    # ---------------------------------------------------------
-
-    # result = smtp_check("shaikhzoha2266@anjumanbskschool.edu.in")
-
-    # print(result)

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_partner_form_email_validation" model="ir.ui.view">
+        <field name="name">res.partner.form.email.validation</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+
+                    <button name="action_validate_email"
+                            type="object"
+                            string="Validate Email"
+                            class="oe_highlight"
+                            icon="fa-check-circle"/>
+
+                     <field name="validation_state"
+                           widget="statusbar"
+                           statusbar_visible="pending,valid,invalid,error"/>
+
+                </header>
+
+            </xpath>
+
+            <xpath expr="//sheet" position="inside">
+
+                <group string="Email Validation"
+                       col="4">
+                    <field name="email_valid"
+                           readonly="1"
+                           widget="boolean_toggle"/>
+
+                    <field name="batch"/>
+
+                    <!-- VALIDATION MESSAGE -->
+
+                    <field name="validation_msg"
+                           readonly="1"
+                           nolabel="1"
+                           colspan="4"/>
+
+                </group>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>
