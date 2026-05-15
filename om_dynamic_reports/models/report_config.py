@@ -178,17 +178,17 @@ class DynamicReportConfig(models.TransientModel):
                     if move_lines:
                         line['has_child_lines'] = True
 
-                    for ml in move_lines:
-                        new_lines.append({
-                            'id': f"ml_{ml.id}",  # string
-                            'parent': str(account_id),
-                            'name': ml.move_name or ml.name,
-                            'debit': ml.debit,
-                            'credit': ml.credit,
-                            'balance': ml.balance,
-                            'level': (line.get('level', 0) + 1),
-                            'has_child_lines': False,
-                        })
+                    # for ml in move_lines:
+                    #     new_lines.append({
+                    #         'id': f"ml_{ml.id}",  # string
+                    #         'parent': str(account_id),
+                    #         'name': ml.move_name or ml.name,
+                    #         'debit': ml.debit,
+                    #         'credit': ml.credit,
+                    #         'balance': ml.balance,
+                    #         'level': (line.get('level', 0) + 1),
+                    #         'has_child_lines': False,
+                    #     })
 
             return [new_lines, currency_data]
 

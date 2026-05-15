@@ -62,21 +62,76 @@
 
                 </select>
             </div>
+            <div class="d-flex flex-column gap-1">
 
-            <div class="d-flex gap-2">
-                <select multiple="multiple"
-                        name="journal_ids"
-                        class="form-select"
-                        t-on-change="onInputChange">
-                    <t t-foreach="state.journal_ids" t-as="j" t-key="j.id">
-                        <option t-att-value="j.id">
-                            <t t-esc="j.name"/>
-                        </option>
-                    </t>
-                </select>
-            </div>
+    <div class="journal_tags_wrapper position-relative">
+
+        <!-- TAG CONTAINER -->
+
+        <div class="d-flex flex-wrap align-items-center gap-1 border rounded p-1 bg-white">
+
+            <!-- SELECTED JOURNALS -->
+
+            <t t-foreach="state.journal_ids
+                .filter(j =>
+                    (state.filters.journal_ids || []).includes(j.id)
+                )"
+               t-as="j"
+               t-key="j.id">
+
+                <span class="badge rounded-pill text-bg-primary d-flex align-items-center gap-1 px-2 py-1 fs-6">
+
+                    <t t-esc="j.name"/>
+
+                    <!-- REMOVE BUTTON -->
+
+                    <span
+                            style="cursor:pointer; font-weight:bold;"
+                            t-on-click="() => removeJournal(j.id)">
+                        ×
+
+                    </span>
+
+                </span>
+
+            </t>
+
+            <!-- SELECT DROPDOWN -->
+
+            <select
+                    class="border-0 flex-grow-1 bg-white"
+                    style="min-width:180px; outline:none; box-shadow:none; font-size: 0.875rem;"
+                    t-on-change="addJournal">
+
+                <option value="">
+                    Select Journals
+                </option>
+
+                <!-- ONLY UNSELECTED JOURNALS -->
+
+                <t t-foreach="state.journal_ids
+                    .filter(j =>
+                        !(state.filters.journal_ids || []).includes(j.id)
+                    )"
+                   t-as="j"
+                   t-key="j.id">
+
+                    <option t-att-value="j.id">
+
+                        <t t-esc="j.name"/>
+
+                    </option>
+
+                </t>
+
+            </select>
+
         </div>
 
+    </div>
+
+</div>
+        </div>
         <div class="splitter-horizontal"/>
 
         <!-- BODY -->
@@ -108,7 +163,7 @@
                             <td t-att-style="'padding-left:' + ((line.level || 0) * 15) + 'px'">
                                     <span
                                             t-on-click.stop="() => toggle(line, line._index)"
-                                            style="cursor:pointer; margin-right:6px;">
+                                            style="cursor:pointer; margin-right:6px; display:inline-block; width:14px;">
                                         <t t-esc="state.expandedLines[line._key] ? '▾' : '▸'"/>
                                     </span>
                                 <t t-esc="line.name"/>

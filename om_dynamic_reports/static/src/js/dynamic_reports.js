@@ -5,13 +5,19 @@ import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
 import {download} from "@web/core/network/download";
 import {patch} from "@web/core/utils/patch";
+import {Many2XAutocomplete} from "@web/views/fields/relational_utils";
 
 export class DynamicReports extends Component {
+    static components = {
+        Many2XAutocomplete,
+    };
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.company = useService("company");
+        this.addJournal = this.addJournal.bind(this);
+        this.removeJournal = this.removeJournal.bind(this);
 
         this.state = useState({
             loading: false,
@@ -87,6 +93,50 @@ export class DynamicReports extends Component {
         }
     }
 
+    updateJournalIds(records) {
+
+        this.state.filters.journal_ids =
+            records.map(r => r.id);
+
+        console.log(
+            'selected journals',
+            this.state.filters.journal_ids
+        );
+    }
+
+    getJournalDomain() {
+        return [];
+    }
+
+    addJournal(ev) {
+
+        const id = parseInt(ev.target.value);
+
+        if (!id) {
+            return;
+        }
+
+        const ids = this.state.filters.journal_ids || [];
+
+        if (!ids.includes(id)) {
+
+            this.state.filters.journal_ids = [
+                ...ids,
+                id,
+            ];
+        }
+
+        // reset select
+        ev.target.value = "";
+    }
+
+    removeJournal(id) {
+
+        this.state.filters.journal_ids =
+            (this.state.filters.journal_ids || [])
+                .filter(j => j !== id);
+    }
+
     /* =========================================================
      * REPORT TYPE HELPER
      * ========================================================= */
@@ -140,7 +190,7 @@ export class DynamicReports extends Component {
 
             display_account: this.state.filters.display_account,
             sortby: this.state.filters.sortby,
-            result_selection:     this.state.filters.result_selection || "customer",
+            result_selection: this.state.filters.result_selection || "customer",
             reconciled: this.state.filters.reconciled,
             period_length: this.state.filters.period_length || 30,
 
@@ -179,63 +229,13 @@ export class DynamicReports extends Component {
             : `line_${index}`;
     }
 
-    // async toggle(line, index) {
-    //     if (!line) return;
-    //
-    //     let key;
-    //
-    //     // ✅ config reports (P&L, BS)
-    //     if (line.id !== undefined) {
-    //         key = line.id;
-    //     }
-    //     // ✅ partner ledger
-    //     else if (line.partner) {
-    //         key = `partner_${line.partner}`;
-    //     } else {
-    //         key = this.getLineKey(line, index);
-    //     }
-    //
-    //     // 👉 partner ledger lazy loading
-    //     if (line.line_type === "partner_parent") {
-    //         if (this.state.loadingChildrenKey === key) return;
-    //
-    //         this.state.loadingChildrenKey = key;
-    //
-    //         try {
-    //             if (!(key in this.state.loadedChildren)) {
-    //                 const children = await this.orm.call(
-    //                     "dynamic.report.config",
-    //                     "fetch_partner_ledger_lines",
-    //                     [line.partner, this.state.filters]
-    //                 );
-    //
-    //                 this.state.loadedChildren = {
-    //                     ...this.state.loadedChildren,
-    //                     [key]: children || [],
-    //                 };
-    //             }
-    //         } finally {
-    //             this.state.loadingChildrenKey = null;
-    //         }
-    //     }
-
-    //
-    //     // ✅ toggle expand
-    //     this.state.expandedLines = {
-    //         ...this.state.expandedLines,
-    //         [key]: !this.state.expandedLines[key],
-    //     };
-    // }
-
 
     async toggle(line, index) {
         if (!line) return;
 
-        let key = line.id
-            ? String(line.id)
-            : line.partner
-                ? `partner_${line.partner}`
-                : String(this.getLineKey(line, index));
+        const key = line._key;
+
+        console.log('key', key);
 
         if (line.line_type === "partner_parent") {
 
@@ -362,154 +362,45 @@ export class DynamicReports extends Component {
         const result = [];
         const lines = this.state.report_lines || [];
 
-        // =====================================================
-        // SAFE UNIQUE KEY GENERATOR
-        // =====================================================
-
-        const makeKey = (prefix = "row") => {
-            return `${prefix}_${Math.random().toString(36).substring(2, 12)}`;
-        };
-
-        // =====================================================
-        // GROUP CHILDREN BY PARENT
-        // =====================================================
-
-        const byParent = {};
-
-        for (const l of lines) {
-
-            if (
-                l.parent === undefined ||
-                l.parent === null ||
-                l.parent === false
-            ) {
-                continue;
-            }
-
-            const parentKey = String(l.parent);
-
-            if (!byParent[parentKey]) {
-                byParent[parentKey] = [];
-            }
-
-            byParent[parentKey].push(l);
-        }
-
-        // =====================================================
-        // RECURSIVE CHILD RENDERER
-        // =====================================================
-
-        const addChildren = (parentId) => {
-
-            const parentKey = String(parentId);
-
-            let children = [...(byParent[parentKey] || [])];
-
-            // lazy loaded partner ledger children
-            if (this.state.loadedChildren[parentKey]) {
-                children.push(...this.state.loadedChildren[parentKey]);
-            }
-
-            for (let index = 0; index < children.length; index++) {
-
-                const child = children[index];
-
-                // =============================================
-                // SAFE UNIQUE CHILD KEY
-                // =============================================
-
-                let childKey;
-
-                if (
-                    child.id !== undefined &&
-                    child.id !== null &&
-                    child.id !== false
-                ) {
-                    childKey = `child_${child.id}`;
-                } else if (child.partner) {
-                    childKey = `partner_${child.partner}_${index}`;
-                } else if (child.move_id) {
-                    childKey = `move_${child.move_id}_${index}`;
-                } else if (child.res_id) {
-                    childKey = `res_${child.res_id}_${index}`;
-                } else {
-                    childKey = makeKey("child");
-                }
-
-                const hasChildren = !!byParent[String(child.id)]?.length;
-
-                result.push({
-                    ...child,
-                    _type: "child",
-                    _key: childKey,
-                    has_child_lines: hasChildren,
-                });
-
-                // =============================================
-                // EXPAND SUBTREE
-                // =============================================
-
-                if (this.state.expandedLines[childKey]) {
-                    addChildren(child.id);
-                }
-            }
-        };
-
-        // =====================================================
-        // ROOT LINES
-        // =====================================================
+        let hiddenLevels = {};
 
         for (let i = 0; i < lines.length; i++) {
 
             const line = lines[i];
 
-            // only root rows
-            if (
-                line.parent !== undefined &&
-                line.parent !== null &&
-                line.parent !== false
-            ) {
-                continue;
+            const level = line.level || 0;
+
+            // hide if parent collapsed
+            let visible = true;
+
+            for (const lvl in hiddenLevels) {
+                if (level > lvl && hiddenLevels[lvl]) {
+                    visible = false;
+                }
             }
 
-            // =============================================
-            // SAFE UNIQUE PARENT KEY
-            // =============================================
+            const key = `line_${i}`;
 
-            let key;
+            const nextLine = lines[i + 1];
 
-            if (
-                line.id !== undefined &&
-                line.id !== null &&
-                line.id !== false
-            ) {
-                key = `parent_${line.id}`;
-            } else if (line.partner) {
-                key = `partner_${line.partner}`;
-            } else {
-                key = `root_${i}`;
-            }
-
-            const hasChildren = !!byParent[String(line.id)]?.length;
+            const hasChildren =
+                nextLine &&
+                (nextLine.level || 0) > level;
 
             result.push({
                 ...line,
-                _type: "parent",
                 _key: key,
-                _index: i,
+                _type: hasChildren ? "parent" : "child",
                 has_child_lines: hasChildren,
+                visible: visible,
+                _index: i,
             });
 
-            // =============================================
-            // EXPAND CHILDREN
-            // =============================================
-
-            if (this.state.expandedLines[key]) {
-                addChildren(line.id);
-            }
+            hiddenLevels[level] =
+                !this.state.expandedLines[key];
         }
 
-        return result;
+        return result.filter(r => r.visible);
     }
 }
 
@@ -545,7 +436,6 @@ patch(DynamicReports.prototype, {
         const report = this.state.report_type.find(r => r.id === reportId);
         if (!report) return;
 
-        // ✅ SAFE mutation (do NOT replace object)
         Object.assign(this.state.filters, {
             account_report_id: reportId,
         });
